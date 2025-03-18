@@ -123,6 +123,9 @@ $menuStrip.BackColor = $darkMenuBackground
 $menuStrip.ForeColor = $darkText
 $menuStrip.RenderMode = [System.Windows.Forms.ToolStripRenderMode]::Professional
 
+# Import für DataGridView-Styling
+Add-Type -AssemblyName System.Windows.Forms.DataVisualization
+
 $fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem("Datei")
 $fileMenu.ForeColor = $darkText
 $saveMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Analyse speichern...")
@@ -202,13 +205,18 @@ $configPanel.Controls.Add($eventsLabel)
 $configPanel.Controls.Add($eventsSlider)
 $configPanel.Controls.Add($analyzeButton)
 
-# Panel für RichTextBox
-$panel = New-Object System.Windows.Forms.Panel
-$panel.Dock = [System.Windows.Forms.DockStyle]::Fill
-$panel.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
-$panel.BackColor = $darkBackground
+# SplitContainer erstellen für geteilte Ansicht (links Text, rechts Tabelle)
+$splitContainer = New-Object System.Windows.Forms.SplitContainer
+$splitContainer.Dock = [System.Windows.Forms.DockStyle]::Fill
+$splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
+$splitContainer.SplitterDistance = 450  # Anfängliche Teilung
+$splitContainer.BackColor = $darkBackground
+$splitContainer.Panel1.BackColor = $darkBackground
+$splitContainer.Panel1.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
+$splitContainer.Panel2.BackColor = $darkBackground
+$splitContainer.Panel2.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
 
-# RichTextBox erstellen für die Anzeige der Analyse
+# RichTextBox für die linke Seite (Analyse)
 $textBox = New-Object System.Windows.Forms.RichTextBox
 $textBox.Multiline = $true
 $textBox.ReadOnly = $true
@@ -220,7 +228,55 @@ $textBox.ForeColor = $darkText
 $textBox.WordWrap = $true
 $textBox.Text = "Willkommen zum Windows Event Analyzer!`n`nWähle ein KI-Modell und die Anzahl der Ereignisse aus, und klicke dann auf 'Ereignisse analysieren', um die Analyse zu starten."
 
-$panel.Controls.Add($textBox)
+$splitContainer.Panel1.Controls.Add($textBox)
+
+# DataGridView für die rechte Seite (Ereignistabelle)
+$dataGridView = New-Object System.Windows.Forms.DataGridView
+$dataGridView.Dock = [System.Windows.Forms.DockStyle]::Fill
+$dataGridView.BackgroundColor = $darkBackground
+$dataGridView.ForeColor = [System.Drawing.Color]::Black
+$dataGridView.GridColor = $darkControlBackground
+$dataGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+$dataGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::Single
+$dataGridView.RowHeadersVisible = $false
+$dataGridView.AllowUserToAddRows = $false
+$dataGridView.AllowUserToDeleteRows = $false
+$dataGridView.AllowUserToResizeRows = $false
+$dataGridView.ReadOnly = $true
+$dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
+$dataGridView.ColumnHeadersDefaultCellStyle.BackColor = $darkMenuBackground
+$dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = $darkText
+$dataGridView.DefaultCellStyle.BackColor = $darkControlBackground
+$dataGridView.DefaultCellStyle.ForeColor = $darkText
+$dataGridView.DefaultCellStyle.SelectionBackColor = $darkAccent
+$dataGridView.DefaultCellStyle.SelectionForeColor = $darkText
+$dataGridView.EnableHeadersVisualStyles = $false
+$dataGridView.ColumnHeadersHeight = 30
+$dataGridView.AutoSizeColumnsMode = [System.Windows.Forms.DataGridViewAutoSizeColumnsMode]::Fill
+
+# Initialisieren mit leeren Spalten
+$columns = @(
+    @{Name = "Id"; Header = "Ereignis-ID"; Width = 80 },
+    @{Name = "Level"; Header = "Schweregrad"; Width = 100 },
+    @{Name = "Time"; Header = "Zeitpunkt"; Width = 150 },
+    @{Name = "Message"; Header = "Nachricht"; Width = 400 }
+)
+
+foreach ($column in $columns) {
+    $newColumn = New-Object System.Windows.Forms.DataGridViewTextBoxColumn
+    $newColumn.Name = $column.Name
+    $newColumn.HeaderText = $column.Header
+    $newColumn.Width = $column.Width
+    $dataGridView.Columns.Add($newColumn)
+}
+
+$splitContainer.Panel2.Controls.Add($dataGridView)
+
+# Panel für den SplitContainer
+$panel = New-Object System.Windows.Forms.Panel
+$panel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$panel.BackColor = $darkBackground
+$panel.Controls.Add($splitContainer)
 
 # Status Bar hinzufügen
 $statusStrip = New-Object System.Windows.Forms.StatusStrip
@@ -284,14 +340,44 @@ function Get-EventLogData {
     $form.Refresh()
     
     try {
-        $events = Get-WinEvent -LogName $LogName -MaxEvents $MaxEvents -ErrorAction Stop | 
+        $global:eventData = Get-WinEvent -LogName $LogName -MaxEvents $MaxEvents -ErrorAction Stop | 
         Select-Object Id, LevelDisplayName, TimeCreated, Message
         
-        Write-Host "$($events.Count) Ereignisse erfolgreich gesammelt."
-        $statusLabel.Text = "$($events.Count) Ereignisse erfolgreich gesammelt."
+        Write-Host "$($global:eventData.Count) Ereignisse erfolgreich gesammelt."
+        $statusLabel.Text = "$($global:eventData.Count) Ereignisse erfolgreich gesammelt."
         $form.Refresh()
         
-        return $events | ConvertTo-Json -Depth 3
+        # DataGridView leeren
+        $dataGridView.Rows.Clear()
+        
+        # Ereignisse in DataGridView anzeigen
+        foreach ($event in $global:eventData) {
+            # Kurze Nachricht für die Tabelle (max. 100 Zeichen)
+            $shortMessage = if ($event.Message.Length -gt 100) {
+                $event.Message.Substring(0, 100) + "..."
+            }
+            else {
+                $event.Message
+            }
+            
+            $rowIndex = $dataGridView.Rows.Add($event.Id, $event.LevelDisplayName, $event.TimeCreated, $shortMessage)
+            
+            # Färben nach Schweregrad
+            if ($event.LevelDisplayName -eq "Error") {
+                $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 80, 40, 40)
+                $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 200, 200)
+            }
+            elseif ($event.LevelDisplayName -eq "Warning") {
+                $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 80, 70, 30)
+                $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 240, 180)
+            }
+            elseif ($event.LevelDisplayName -eq "Critical") {
+                $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 120, 30, 30)
+                $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 180, 180)
+            }
+        }
+        
+        return $global:eventData | ConvertTo-Json -Depth 3
     }
     catch {
         Write-Error "Fehler beim Auslesen der Ereignisdaten: $_"
@@ -316,14 +402,37 @@ function Get-AIAnalysis {
     $form.Refresh()
     
     $systemPrompt = @"
-Analysiere die folgenden Windows-Ereignisdaten und gib eine verstaendliche Zusammenfassung mit folgenden Abschnitten:
+Analysiere die folgenden Windows-Ereignisdaten und liefere das Ergebnis in zwei Teilen:
+
+TEIL 1: MARKDOWN-ANALYSE
+Erstelle eine verstaendliche Zusammenfassung mit folgenden Abschnitten:
 1. Uebersicht: Anzahl und Arten der Ereignisse
 2. Wichtige Ereignisse: Hervorheben kritischer oder ungewoehnlicher Eintraege
 3. Fehleranalyse: Moegliche Ursachen fuer Fehler oder Warnungen
 4. Empfehlungen: Konkrete Handlungsempfehlungen basierend auf den Ereignissen
 5. Zusammenfassung: Allgemeiner Systemzustand und wichtigste Punkte
 
-Formatiere die Ausgabe mit Markdown fuer bessere Lesbarkeit.
+Formatiere diesen Teil mit Markdown fuer bessere Lesbarkeit.
+
+TEIL 2: JSON-DATEN
+Nach der Markdown-Analyse, füge einen JSON-Block ein, der wichtige Events enthält, die hervorgehoben werden sollten. Formatiere diesen Block wie folgt:
+\`\`\`json
+{
+  "important_events": [
+    {
+      "id": "EventID",
+      "level": "Schweregrad",
+      "time": "Zeitpunkt",
+      "message": "Kurze Beschreibung",
+      "priority": 1-10,
+      "recommendation": "Kurze Handlungsempfehlung"
+    },
+    ...
+  ]
+}
+\`\`\`
+
+Die JSON-Struktur sollte maximal 10 der wichtigsten Ereignisse enthalten, sortiert nach Priorität (1-10, wobei 10 am wichtigsten ist).
 
 WICHTIG: Verwende nur ASCII-Zeichen in deiner Antwort, um Encoding-Probleme zu vermeiden. 
 Ersetze Umlaute wie folgt:
@@ -652,8 +761,69 @@ function PerformAnalysis {
     
     $analyseErgebnis = Get-AIAnalysis -LogData $logData -ApiUrl $apiUrl -ApiKey $apiKey -Model $aiModell
     
-    # Ergebnis anzeigen mit Markdown-Formatierung
-    Format-MarkdownText -RichTextBox $textBox -MarkdownText $analyseErgebnis
+    # Prüfen, ob JSON-Daten im Ergebnis enthalten sind
+    if ($analyseErgebnis -match '```json\s*({[\s\S]*?})\s*```') {
+        $jsonPart = $Matches[1]
+        try {
+            # Versuche, den JSON-Teil zu parsen
+            $importantEvents = $jsonPart | ConvertFrom-Json
+            
+            # DataGridView leeren
+            $dataGridView.Rows.Clear()
+            
+            # Wichtige Ereignisse in der Tabelle anzeigen
+            if ($importantEvents.important_events -and $importantEvents.important_events.Count -gt 0) {
+                foreach ($event in $importantEvents.important_events) {
+                    # Zellen für die Tabelle vorbereiten
+                    $id = $event.id
+                    $level = $event.level
+                    $time = $event.time
+                    $message = $event.message
+                    
+                    # In DataGridView einfügen
+                    $rowIndex = $dataGridView.Rows.Add($id, $level, $time, $message)
+                    
+                    # Priorität als Zellfarbe darstellen (je höher, desto intensiver)
+                    $priority = [Math]::Min([Math]::Max($event.priority, 1), 10)  # Zwischen 1-10 begrenzen
+                    
+                    # Farbe je nach Schweregrad und Priorität
+                    $colorIntensity = 80 + ($priority * 15)  # 80-230 Bereich
+                    
+                    if ($event.level -eq "Error" -or $event.level -eq "Fehler") {
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, $colorIntensity, 40, 40)
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 200, 200)
+                    }
+                    elseif ($event.level -eq "Warning" -or $event.level -eq "Warnung") {
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, $colorIntensity, [Math]::Min($colorIntensity - 10, 230), 40)
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 240, 180)
+                    }
+                    elseif ($event.level -eq "Critical" -or $event.level -eq "Kritisch") {
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, [Math]::Min($colorIntensity + 40, 255), 30, 30)
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 180, 180)
+                    }
+                    else {
+                        # Andere Schweregrade mit neutralerer Farbe darstellen
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 40, 40, [Math]::Min($colorIntensity, 230))
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = $darkText
+                    }
+                    
+                    # Tooltip mit Empfehlung hinzufügen
+                    if ($event.recommendation) {
+                        $dataGridView.Rows[$rowIndex].Cells[3].ToolTipText = $event.recommendation
+                    }
+                }
+                
+                $statusLabel.Text = "Analyse abgeschlossen | $($importantEvents.important_events.Count) wichtige Ereignisse gefunden"
+            }
+        }
+        catch {
+            Write-Host "Fehler beim Parsen des JSON-Teils: $_" -ForegroundColor Red
+        }
+    }
+    
+    # Einfachen Text (ohne JSON-Teile) aus der Antwort extrahieren und formatieren
+    $markdownPart = $analyseErgebnis -replace '```json[\s\S]*?```', ''
+    Format-MarkdownText -RichTextBox $textBox -MarkdownText $markdownPart
 }
 
 # Analyse-Button-Handler
