@@ -10,6 +10,27 @@ Um das Skript direkt ohne Download auszuführen, kopieren Sie den folgenden Befe
 powershell -Command "iwr -useb https://raw.githubusercontent.com/vsvito420/ps1_event_viewer_openrouter/main/EventAnalyzer.ps1 | iex"
 ```
 
+**Hinweis:** Diese Schreibweise könnte von Antivirenprogrammen als verdächtig erkannt werden, da sie häufig von Malware verwendet wird. Falls Sie Probleme haben, nutzen Sie die alternative Methode unten.
+
+## Alternative mehrstufige Installation
+
+Diese Methode ist weniger wahrscheinlich, Virenscanner zu aktivieren:
+
+1. PowerShell öffnen (als Administrator) und die Datei herunterladen:
+   ```powershell
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/vsvito420/ps1_event_viewer_openrouter/main/EventAnalyzer.ps1" -OutFile "$env:TEMP\EventAnalyzer.ps1"
+   ```
+
+2. Die Datei überprüfen (optional):
+   ```powershell
+   Get-Content "$env:TEMP\EventAnalyzer.ps1" | Select-Object -First 20
+   ```
+
+3. Das Skript ausführen:
+   ```powershell
+   & "$env:TEMP\EventAnalyzer.ps1"
+   ```
+
 ## Features
 
 - Analyse von Windows-Ereignisprotokollen mit KI
