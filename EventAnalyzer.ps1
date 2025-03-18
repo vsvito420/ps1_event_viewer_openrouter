@@ -139,8 +139,9 @@ function Set-ViewMode {
     
     switch ($Mode) {
         "both" {
-            $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal
-            $splitContainer.SplitterDistance = $splitContainer.Height / 2
+            # Beide Panels sichtbar - Text links, Tabelle rechts
+            $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
+            $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(550, $splitContainer.Width / 2), $splitContainer.Width * 0.6)
             $splitContainer.Panel1Collapsed = $false
             $splitContainer.Panel2Collapsed = $false
             $bothViewButton.BackColor = $darkAccent
@@ -148,6 +149,7 @@ function Set-ViewMode {
             $gridViewButton.BackColor = $darkMenuBackground
         }
         "text" {
+            # Nur Textpanel anzeigen (links)
             $splitContainer.Panel1Collapsed = $false
             $splitContainer.Panel2Collapsed = $true
             $bothViewButton.BackColor = $darkMenuBackground
@@ -155,6 +157,7 @@ function Set-ViewMode {
             $gridViewButton.BackColor = $darkMenuBackground
         }
         "grid" {
+            # Nur Tabelle anzeigen (rechts)
             $splitContainer.Panel1Collapsed = $true
             $splitContainer.Panel2Collapsed = $false
             $bothViewButton.BackColor = $darkMenuBackground
@@ -969,6 +972,10 @@ $analyzeButton.Add_Click({
         PerformAnalysis
     })
 
-# Form anzeigen
-$form.Add_Shown({ $form.Activate() })
+# Initial View Mode setzen
+$form.Add_Shown({
+        $form.Activate()
+        # Standard-Ansichtsmodus "both" anwenden
+        Set-ViewMode -Mode "both"
+    })
 [System.Windows.Forms.Application]::Run($form)
