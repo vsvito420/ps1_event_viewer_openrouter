@@ -82,7 +82,7 @@ function Set-EnvVariable {
 
 # API Konfiguration
 $apiUrl = "https://openrouter.ai/api/v1/chat/completions"  # OpenRouter API-URL
-# Verfügbare Modelle
+# Verfuegbare Modelle
 $availableModels = @{
     "Claude 3.7 Sonnet"            = "anthropic/claude-3.7-sonnet"
     "Claude 3.7 Sonnet (thinking)" = "anthropic/claude-3.7-sonnet:thinking"
@@ -114,42 +114,42 @@ $form.StartPosition = "CenterScreen"  # Automatisch zentrieren
 $form.Icon = [System.Drawing.SystemIcons]::Information
 $form.BackColor = $darkBackground
 $form.ForeColor = $darkText
-$form.MinimumSize = New-Object System.Drawing.Size(800, 500)  # Minimalgröße hinzugefügt
+$form.MinimumSize = New-Object System.Drawing.Size(800, 500)  # Minimalgroesse hinzugefuegt
 
-# Import für DataGridView-Styling
+# Import fuer DataGridView-Styling
 Add-Type -AssemblyName System.Windows.Forms.DataVisualization
 
-# Globale Variablen für die Ansichtsmodi
-$script:viewMode = "both"  # Mögliche Werte: "both", "text", "grid"
-$script:splitOrientation = "horizontal"  # Mögliche Werte: "horizontal", "vertical"
+# Globale Variablen fuer die Ansichtsmodi
+$script:viewMode = "both"  # Moegliche Werte: "both", "text", "grid"
+$script:splitOrientation = "horizontal"  # Moegliche Werte: "horizontal", "vertical"
 
 # Funktion zum Umschalten der Split-Orientierung
 function Switch-SplitOrientation {
     if ($script:splitOrientation -eq "horizontal") {
         $script:splitOrientation = "vertical"
         $splitToggleButton.Text = "Horizontal splitten"
-        # In Windows Forms ist "Horizontal" die Orientierung für oben/unten Aufteilung
+        # In Windows Forms ist "Horizontal" die Orientierung fuer oben/unten Aufteilung
         $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal
     }
     else {
         $script:splitOrientation = "horizontal"
         $splitToggleButton.Text = "Vertikal splitten"
-        # In Windows Forms ist "Vertical" die Orientierung für links/rechts Aufteilung
+        # In Windows Forms ist "Vertical" die Orientierung fuer links/rechts Aufteilung
         $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
     }
     
-    # Splitter-Distanz anpassen, abhängig von der Orientierung
+    # Splitter-Distanz anpassen, abhaengig von der Orientierung
     if ($splitContainer.Orientation -eq [System.Windows.Forms.Orientation]::Vertical) {
-        # Für horizontales Splitting (links/rechts)
+        # Fuer horizontales Splitting (links/rechts)
         $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(550, $splitContainer.Width / 2), $splitContainer.Width * 0.6)
     }
     else {
-        # Für vertikales Splitting (oben/unten)
+        # Fuer vertikales Splitting (oben/unten)
         $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(300, $splitContainer.Height / 2), $splitContainer.Height * 0.6)
     }
 }
 
-# Seitenleiste für Menü und Konfiguration
+# Seitenleiste fuer Menue und Konfiguration
 $sidebarPanel = New-Object System.Windows.Forms.Panel
 $sidebarPanel.Dock = [System.Windows.Forms.DockStyle]::Left
 $sidebarPanel.Width = 220
@@ -206,14 +206,14 @@ function Set-ViewMode {
     }
 }
 
-# Container für Konfigurationselemente in der Sidebar
+# Container fuer Konfigurationselemente in der Sidebar
 $configPanel = New-Object System.Windows.Forms.Panel
 $configPanel.Dock = [System.Windows.Forms.DockStyle]::Top
 $configPanel.Height = 320
 $configPanel.BackColor = $darkControlBackground
 $configPanel.Padding = New-Object System.Windows.Forms.Padding(5, 5, 5, 5)
 
-# Überschrift für die Seitenleiste
+# ueberschrift fuer die Seitenleiste
 $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Text = "Windows Event Analyzer"
 $titleLabel.ForeColor = $darkText
@@ -222,7 +222,7 @@ $titleLabel.Location = New-Object System.Drawing.Point(10, 10)
 $titleLabel.Size = New-Object System.Drawing.Size(200, 25)
 $sidebarPanel.Controls.Add($titleLabel)
 
-# Trennlinie unter der Überschrift
+# Trennlinie unter der ueberschrift
 $separatorLabel1 = New-Object System.Windows.Forms.Label
 $separatorLabel1.Text = ""
 $separatorLabel1.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
@@ -249,7 +249,7 @@ $modelComboBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 foreach ($model in $availableModels.Keys) {
     [void]$modelComboBox.Items.Add($model)
 }
-$modelComboBox.SelectedItem = "Claude 3.7 Sonnet"  # Standard-Modell auswählen
+$modelComboBox.SelectedItem = "Claude 3.7 Sonnet"  # Standard-Modell auswaehlen
 $sidebarPanel.Controls.Add($modelComboBox)
 
 # Ereignisanzahl Slider
@@ -260,7 +260,7 @@ $eventsLabel.Location = New-Object System.Drawing.Point(10, 100)
 $eventsLabel.Size = New-Object System.Drawing.Size(150, 20)
 $sidebarPanel.Controls.Add($eventsLabel)
 
-# TrackBar für Ereignisanzahl (50-250)
+# TrackBar fuer Ereignisanzahl (50-250)
 $eventsSlider = New-Object System.Windows.Forms.TrackBar
 $eventsSlider.Minimum = 50
 $eventsSlider.Maximum = 250
@@ -273,14 +273,14 @@ $eventsSlider.Size = New-Object System.Drawing.Size(200, 45)
 $eventsSlider.BackColor = $darkControlBackground
 $sidebarPanel.Controls.Add($eventsSlider)
 
-# Label für aktuellen Wert
+# Label fuer aktuellen Wert
 $eventsSlider.Add_ValueChanged({
         $eventsLabel.Text = "Ereignisanzahl: $($eventsSlider.Value)"
     })
 
-# Notizbox für zusätzliche Anweisungen an die KI
+# Notizbox fuer zusaetzliche Anweisungen an die KI
 $notizLabel = New-Object System.Windows.Forms.Label
-$notizLabel.Text = "Zusätzliche Anweisungen:"
+$notizLabel.Text = "Zusaetzliche Anweisungen:"
 $notizLabel.ForeColor = $darkText
 $notizLabel.Location = New-Object System.Drawing.Point(10, 165)
 $notizLabel.Size = New-Object System.Drawing.Size(150, 20)
@@ -304,7 +304,7 @@ $separatorLabel2.Location = New-Object System.Drawing.Point(10, 255)
 $separatorLabel2.Size = New-Object System.Drawing.Size(200, 2)
 $sidebarPanel.Controls.Add($separatorLabel2)
 
-# Überschrift für Ansichtsmodus
+# ueberschrift fuer Ansichtsmodus
 $viewModeLabel = New-Object System.Windows.Forms.Label
 $viewModeLabel.Text = "Ansichtsmodus:"
 $viewModeLabel.ForeColor = $darkText
@@ -313,10 +313,10 @@ $viewModeLabel.Location = New-Object System.Drawing.Point(10, 265)
 $viewModeLabel.Size = New-Object System.Drawing.Size(150, 20)
 $sidebarPanel.Controls.Add($viewModeLabel)
 
-# Buttons für Ansichtsmodus
+# Buttons fuer Ansichtsmodus
 $bothViewButton = New-Object System.Windows.Forms.Button
 $bothViewButton.Text = "Text und Tabelle"
-$bothViewButton.BackColor = $darkAccent  # Standardmäßig aktiv
+$bothViewButton.BackColor = $darkAccent  # Standardmaessig aktiv
 $bothViewButton.ForeColor = $darkText
 $bothViewButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 $bothViewButton.Location = New-Object System.Drawing.Point(10, 290)
@@ -344,7 +344,7 @@ $gridViewButton.Size = New-Object System.Drawing.Size(200, 30)
 $gridViewButton.Add_Click({ Set-ViewMode -Mode "grid" })
 $sidebarPanel.Controls.Add($gridViewButton)
 
-# Button für die Split-Orientierung (nur aktiv wenn beide Panels sichtbar)
+# Button fuer die Split-Orientierung (nur aktiv wenn beide Panels sichtbar)
 $splitToggleButton = New-Object System.Windows.Forms.Button
 $splitToggleButton.Text = "Vertikal splitten"
 $splitToggleButton.BackColor = $darkMenuBackground
@@ -363,7 +363,7 @@ $separatorLabel3.Location = New-Object System.Drawing.Point(10, 435)
 $separatorLabel3.Size = New-Object System.Drawing.Size(200, 2)
 $sidebarPanel.Controls.Add($separatorLabel3)
 
-# Überschrift für Aktionen
+# ueberschrift fuer Aktionen
 $actionLabel = New-Object System.Windows.Forms.Label
 $actionLabel.Text = "Aktionen:"
 $actionLabel.ForeColor = $darkText
@@ -372,7 +372,7 @@ $actionLabel.Location = New-Object System.Drawing.Point(10, 445)
 $actionLabel.Size = New-Object System.Drawing.Size(100, 20)
 $sidebarPanel.Controls.Add($actionLabel)
 
-# Analyse-Button hinzufügen
+# Analyse-Button hinzufuegen
 $analyzeButton = New-Object System.Windows.Forms.Button
 $analyzeButton.Text = "Ereignisse analysieren"
 $analyzeButton.BackColor = $darkAccent
@@ -423,32 +423,32 @@ $exitButton.Size = New-Object System.Drawing.Size(200, 30)
 $exitButton.Add_Click({ $form.Close() })
 $sidebarPanel.Controls.Add($exitButton)
 
-# SplitContainer erstellen für geteilte Ansicht (links Text, rechts Tabelle)
+# SplitContainer erstellen fuer geteilte Ansicht (links Text, rechts Tabelle)
 $splitContainer = New-Object System.Windows.Forms.SplitContainer
 $splitContainer.Dock = [System.Windows.Forms.DockStyle]::Fill
 $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical  # Vertical = links/rechts
-$splitContainer.SplitterDistance = 550  # Anfängliche Teilung (links breiter)
+$splitContainer.SplitterDistance = 550  # Anfaengliche Teilung (links breiter)
 $splitContainer.BackColor = $darkBackground
 $splitContainer.Panel1.BackColor = $darkBackground
 $splitContainer.Panel1.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
 $splitContainer.Panel2.BackColor = $darkBackground
 $splitContainer.Panel2.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
 
-# RichTextBox für die linke Seite (Analyse)
+# RichTextBox fuer die linke Seite (Analyse)
 $textBox = New-Object System.Windows.Forms.RichTextBox
 $textBox.Multiline = $true
 $textBox.ReadOnly = $true
 $textBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
 $textBox.Dock = [System.Windows.Forms.DockStyle]::Fill
-$textBox.Font = New-Object System.Drawing.Font("Consolas", 12)  # Größere Schrift (war 10)
+$textBox.Font = New-Object System.Drawing.Font("Consolas", 12)  # Groessere Schrift (war 10)
 $textBox.BackColor = $darkBackground
 $textBox.ForeColor = $darkText
 $textBox.WordWrap = $true
-$textBox.Text = "Willkommen zum Windows Event Analyzer!`n`nWähle ein KI-Modell und die Anzahl der Ereignisse aus, und klicke dann auf 'Ereignisse analysieren', um die Analyse zu starten."
+$textBox.Text = "Willkommen zum Windows Event Analyzer!`n`nWaehle ein KI-Modell und die Anzahl der Ereignisse aus, und klicke dann auf 'Ereignisse analysieren', um die Analyse zu starten."
 
 $splitContainer.Panel1.Controls.Add($textBox)
 
-# DataGridView für die rechte Seite (Ereignistabelle)
+# DataGridView fuer die rechte Seite (Ereignistabelle)
 $dataGridView = New-Object System.Windows.Forms.DataGridView
 $dataGridView.Dock = [System.Windows.Forms.DockStyle]::Fill
 $dataGridView.BackgroundColor = $darkBackground
@@ -469,18 +469,18 @@ $dataGridView.DefaultCellStyle.ForeColor = $darkText
 $dataGridView.DefaultCellStyle.SelectionBackColor = $darkAccent
 $dataGridView.DefaultCellStyle.SelectionForeColor = $darkText
 $dataGridView.EnableHeadersVisualStyles = $false
-$dataGridView.ColumnHeadersHeight = 36  # Erhöht (war 30)
+$dataGridView.ColumnHeadersHeight = 36  # Erhoeht (war 30)
 $dataGridView.AutoSizeColumnsMode = [System.Windows.Forms.DataGridViewAutoSizeColumnsMode]::Fill
 
-# Größere Schrift für DataGridView
+# Groessere Schrift fuer DataGridView
 $dataGridView.DefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI", 11)
 $dataGridView.ColumnHeadersDefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
 
-# Initialisieren mit leeren Spalten für die Analysetabelle
+# Initialisieren mit leeren Spalten fuer die Analysetabelle
 $columns = @(
-    @{Name = "Problem"; Header = "Problem"; Width = 150 }, # Prägnanter Name statt allgemeiner Kategorie
+    @{Name = "Problem"; Header = "Problem"; Width = 150 }, # Praegnanter Name statt allgemeiner Kategorie
     @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 200 },
-    @{Name = "Haeufigkeit"; Header = "Häufigkeit"; Width = 80 },
+    @{Name = "Haeufigkeit"; Header = "haeufigkeit"; Width = 80 },
     @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 80 },
     @{Name = "Fehlerbehebung"; Header = "Fehlerbehebung"; Width = 200 }
 )
@@ -495,13 +495,13 @@ foreach ($column in $columns) {
 
 $splitContainer.Panel2.Controls.Add($dataGridView)
 
-# Panel für den SplitContainer
+# Panel fuer den SplitContainer
 $panel = New-Object System.Windows.Forms.Panel
 $panel.Dock = [System.Windows.Forms.DockStyle]::Fill
 $panel.BackColor = $darkBackground
 $panel.Controls.Add($splitContainer)
 
-# Status Bar hinzufügen
+# Status Bar hinzufuegen
 $statusStrip = New-Object System.Windows.Forms.StatusStrip
 $statusStrip.BackColor = $darkMenuBackground
 $statusLabel = New-Object System.Windows.Forms.ToolStripStatusLabel
@@ -509,10 +509,10 @@ $statusLabel.Text = "Bereit | Ereignisprotokoll: System | Modell: $aiModell"
 $statusLabel.ForeColor = $darkText
 $statusStrip.Items.Add($statusLabel)
 
-# Die Menüleiste wurde entfernt und durch die Seitenleiste ersetzt
-# Alle Menübefehle werden nun direkt über die Seitenleiste ausgeführt
+# Die Menueleiste wurde entfernt und durch die Seitenleiste ersetzt
+# Alle Menuebefehle werden nun direkt ueber die Seitenleiste ausgefuehrt
 
-# Elemente zum Formular hinzufügen
+# Elemente zum Formular hinzufuegen
 $form.Controls.Add($statusStrip)
 $form.Controls.Add($panel)
 $form.Controls.Add($sidebarPanel)
@@ -563,7 +563,7 @@ function Get-AIAnalysis {
     $statusLabel.Text = "Sende Daten an $Model zur Analyse..."
     $form.Refresh()
     
-    # Benutzernotizen für die KI verwenden, falls vorhanden
+    # Benutzernotizen fuer die KI verwenden, falls vorhanden
     $userNotes = $notizTextBox.Text.Trim()
     $userNotesText = ""
     if ($userNotes -ne "" -and $userNotes -ne "z.B. Ignoriere Programme wie Chrome oder Outlook") {
@@ -650,13 +650,13 @@ Vermeide alle sonstigen Sonderzeichen, die nicht im ASCII-Zeichensatz enthalten 
     }
     
     try {
-        # API-Anfrage mit curl-ähnlicher Protokollierung
+        # API-Anfrage mit curl-aehnlicher Protokollierung
         Write-Host "`nSende API-Anfrage an OpenRouter:" -ForegroundColor Yellow
         Write-Host "URL: $ApiUrl" -ForegroundColor DarkGray
         Write-Host "Modell: $Model" -ForegroundColor DarkGray
-        Write-Host "API-Schlüssel: $(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungültig oder zu kurz" })" -ForegroundColor DarkGray
+        Write-Host "API-Schluessel: $(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungueltig oder zu kurz" })" -ForegroundColor DarkGray
         
-        # Zeige curl-äquivalenten Befehl an (nur zur Information)
+        # Zeige curl-aequivalenten Befehl an (nur zur Information)
         $curlEquivalent = @"
 Entsprechender curl-Befehl:
 curl $ApiUrl \
@@ -678,7 +678,7 @@ curl $ApiUrl \
 "@
         Write-Host $curlEquivalent -ForegroundColor DarkGray
 
-        # Tatsächliche Anfrage senden
+        # Tatsaechliche Anfrage senden
         $response = Invoke-RestMethod -Uri $ApiUrl -Method Post -Headers $headers -Body $body -ErrorAction Stop
         
         # Hier nehmen wir an, dass die Antwort in $response.choices[0].message.content enthalten ist.
@@ -702,19 +702,19 @@ curl $ApiUrl \
 $_
 
 ## Moegliche Ursachen
-- Ungültiger API-Schlüssel (überprüfe den Schlüssel in der .env Datei)
+- Ungueltiger API-Schluessel (ueberpruefe den Schluessel in der .env Datei)
 - Netzwerkprobleme oder keine Internetverbindung
-- OpenRouter-Dienst ist möglicherweise nicht erreichbar
+- OpenRouter-Dienst ist moeglicherweise nicht erreichbar
 - Firewall oder Antivirus blockiert die Verbindung
 
-## Überprüfung des API-Schlüssels
-Aktuell verwendeter API-Schlüssel: `$(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungültig oder zu kurz" })`
+## ueberpruefung des API-Schluessels
+Aktuell verwendeter API-Schluessel: `$(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungueltig oder zu kurz" })`
 Konfigurationsdatei: `$configFile`
 
 ## Was du tun kannst
-1. Überprüfe deine Internetverbindung
-2. Stelle sicher, dass der API-Schlüssel in der .env Datei korrekt ist
-3. Besuche [OpenRouter](https://openrouter.ai) um zu prüfen, ob der Dienst verfügbar ist
+1. ueberpruefe deine Internetverbindung
+2. Stelle sicher, dass der API-Schluessel in der .env Datei korrekt ist
+3. Besuche [OpenRouter](https://openrouter.ai) um zu pruefen, ob der Dienst verfuegbar ist
 
 Du kannst auch die Demo-Version des Skripts ohne API ausprobieren: `.\DemoEventAnalyzer.ps1`
 "@
@@ -723,14 +723,14 @@ Du kannst auch die Demo-Version des Skripts ohne API ausprobieren: `.\DemoEventA
     }
 }
 
-# --- Funktion zum Parsen von Markdown für farbige Darstellung ---
+# --- Funktion zum Parsen von Markdown fuer farbige Darstellung ---
 function Format-MarkdownText {
     param (
         [System.Windows.Forms.RichTextBox]$RichTextBox,
         [string]$MarkdownText
     )
     
-    # Textbox leeren und zurücksetzen
+    # Textbox leeren und zuruecksetzen
     $RichTextBox.Clear()
     
     # Farben definieren
@@ -738,7 +738,7 @@ function Format-MarkdownText {
     $colorHeading2 = [System.Drawing.Color]::FromArgb(255, 102, 204, 255)   # Blau
     $colorHeading3 = [System.Drawing.Color]::FromArgb(255, 129, 199, 247)   # Helleres Blau
     $colorBold = [System.Drawing.Color]::FromArgb(255, 255, 203, 107)       # Gelb-Orange
-    $colorItalic = [System.Drawing.Color]::FromArgb(255, 180, 210, 115)     # Grün-Gelb
+    $colorItalic = [System.Drawing.Color]::FromArgb(255, 180, 210, 115)     # Gruen-Gelb
     $colorList = [System.Drawing.Color]::FromArgb(255, 247, 140, 108)       # Orange
     $colorCode = [System.Drawing.Color]::FromArgb(255, 190, 145, 255)       # Lila
     $colorNormal = [System.Drawing.Color]::FromArgb(255, 220, 220, 220)     # Hellgrau
@@ -752,7 +752,7 @@ function Format-MarkdownText {
         $isBold = $false
         $isItalic = $false
         
-        # Überschriften prüfen
+        # ueberschriften pruefen
         if ($line -match '^# (.+)') {
             $currentColor = $colorHeading1
             $line = $Matches[1]
@@ -768,12 +768,12 @@ function Format-MarkdownText {
             $line = $Matches[1]
             $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, 11, [System.Drawing.FontStyle]::Bold)
         }
-        # Aufzählungspunkte prüfen
+        # Aufzaehlungspunkte pruefen
         elseif ($line -match '^(\s*[-*+]\s+)(.+)$') {
             $prefix = $Matches[1]
             $content = $Matches[2]
             
-            # Zuerst das Bullet-Point-Symbol hinzufügen
+            # Zuerst das Bullet-Point-Symbol hinzufuegen
             $RichTextBox.SelectionColor = $colorList
             $RichTextBox.AppendText($prefix)
             
@@ -783,12 +783,12 @@ function Format-MarkdownText {
             $RichTextBox.AppendText("`n")
             continue
         }
-        # Code-Blöcke prüfen
+        # Code-Bloecke pruefen
         elseif ($line -match '^```') {
             $currentColor = $colorCode
         }
         
-        # Fett und kursiv für die gesamte Zeile prüfen - einfache Implementierung
+        # Fett und kursiv fuer die gesamte Zeile pruefen - einfache Implementierung
         if ($line -match '\*\*(.+)\*\*') {
             $isBold = $true
             $line = $line -replace '\*\*(.+)\*\*', '$1'
@@ -813,19 +813,19 @@ function Format-MarkdownText {
             $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, $RichTextBox.Font.Size, [System.Drawing.FontStyle]::Regular)
         }
         
-        # Farbe setzen und Zeile hinzufügen
+        # Farbe setzen und Zeile hinzufuegen
         $RichTextBox.SelectionColor = $currentColor
         $RichTextBox.AppendText($line + "`n")
     }
 }
 
-# Funktion zur Durchführung der Analyse
+# Funktion zur Durchfuehrung der Analyse
 function PerformAnalysis {
     # Aktuelle Einstellungen abrufen
     $maxEvents = $eventsSlider.Value
     $selectedModelName = $modelComboBox.SelectedItem
     $aiModell = $availableModels[$selectedModelName]
-    $logName = "System"  # Hier könnte man später ein Dropdown für verschiedene Logs hinzufügen
+    $logName = "System"  # Hier koennte man spaeter ein Dropdown fuer verschiedene Logs hinzufuegen
     
     # Internetverbindung testen
     $textBox.Clear()
@@ -835,7 +835,7 @@ function PerformAnalysis {
     try {
         $testConnection = Test-Connection -ComputerName "google.com" -Count 1 -Quiet
         if (-not $testConnection) {
-            $textBox.AppendText("Keine Internetverbindung verfügbar. Die API kann nicht erreicht werden.\n")
+            $textBox.AppendText("Keine Internetverbindung verfuegbar. Die API kann nicht erreicht werden.\n")
             $textBox.AppendText("Starte Demo-Modus stattdessen...\n")
             $form.Refresh()
             
@@ -846,7 +846,7 @@ function PerformAnalysis {
         }
     }
     catch {
-        $textBox.AppendText("Fehler beim Prüfen der Internetverbindung: $_\n")
+        $textBox.AppendText("Fehler beim Pruefen der Internetverbindung: $_\n")
         $textBox.AppendText("Starte Demo-Modus stattdessen...\n")
         $form.Refresh()
         
@@ -856,17 +856,17 @@ function PerformAnalysis {
         return
     }
     
-    # API-Schlüssel überprüfen
+    # API-Schluessel ueberpruefen
     $apiKey = Get-EnvVariable -Key "OPENROUTER_API_KEY" -FilePath $configFile
     
     if ($null -eq $apiKey -or $apiKey -eq "") {
         $textBox.Clear()
-        $textBox.AppendText("Ein OpenRouter API-Schlüssel ist erforderlich.\n")
+        $textBox.AppendText("Ein OpenRouter API-Schluessel ist erforderlich.\n")
         $form.Refresh()
         
-        # API-Schlüssel-Abfrage mit TextBox
+        # API-Schluessel-Abfrage mit TextBox
         $apiKeyForm = New-Object System.Windows.Forms.Form
-        $apiKeyForm.Text = "API-Schlüssel eingeben"
+        $apiKeyForm.Text = "API-Schluessel eingeben"
         $apiKeyForm.Size = New-Object System.Drawing.Size(400, 150)
         $apiKeyForm.StartPosition = "CenterParent"
         $apiKeyForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
@@ -874,7 +874,7 @@ function PerformAnalysis {
         $apiKeyForm.ForeColor = $darkText
         
         $apiKeyLabel = New-Object System.Windows.Forms.Label
-        $apiKeyLabel.Text = "Bitte gib deinen OpenRouter API-Schlüssel ein:"
+        $apiKeyLabel.Text = "Bitte gib deinen OpenRouter API-Schluessel ein:"
         $apiKeyLabel.ForeColor = $darkText
         $apiKeyLabel.Location = New-Object System.Drawing.Point(10, 20)
         $apiKeyLabel.Size = New-Object System.Drawing.Size(380, 20)
@@ -916,15 +916,15 @@ function PerformAnalysis {
             $apiKey = $apiKeyTextBox.Text.Trim()
             if ($apiKey -ne "") {
                 Set-EnvVariable -Key "OPENROUTER_API_KEY" -Value $apiKey -FilePath $configFile
-                Write-Host "API-Schlüssel erfolgreich gespeichert." -ForegroundColor Green
+                Write-Host "API-Schluessel erfolgreich gespeichert." -ForegroundColor Green
             }
             else {
-                $textBox.AppendText("Kein API-Schlüssel eingegeben. Die Analyse kann nicht durchgeführt werden.\n")
+                $textBox.AppendText("Kein API-Schluessel eingegeben. Die Analyse kann nicht durchgefuehrt werden.\n")
                 return
             }
         }
         else {
-            $textBox.AppendText("API-Schlüssel-Eingabe abgebrochen. Die Analyse kann nicht durchgeführt werden.\n")
+            $textBox.AppendText("API-Schluessel-Eingabe abgebrochen. Die Analyse kann nicht durchgefuehrt werden.\n")
             return
         }
     }
@@ -945,7 +945,7 @@ function PerformAnalysis {
     
     $analyseErgebnis = Get-AIAnalysis -LogData $logData -ApiUrl $apiUrl -ApiKey $apiKey -Model $aiModell
     
-    # Prüfen, ob JSON-Daten im Ergebnis enthalten sind
+    # Pruefen, ob JSON-Daten im Ergebnis enthalten sind
     if ($analyseErgebnis -match '```json\s*({[\s\S]*?})\s*```') {
         $jsonPart = $Matches[1]
         try {
@@ -955,24 +955,24 @@ function PerformAnalysis {
             # DataGridView leeren
             $dataGridView.Rows.Clear()
             
-            # Tabellenzeilen aus der AI-Analyse in das DataGridView einfügen
+            # Tabellenzeilen aus der AI-Analyse in das DataGridView einfuegen
             if ($tableData.table_rows -and $tableData.table_rows.Count -gt 0) {
                 foreach ($row in $tableData.table_rows) {
-                    # Daten für die Tabelle vorbereiten
+                    # Daten fuer die Tabelle vorbereiten
                     $kategorie = $row.kategorie
                     $beschreibung = $row.beschreibung
                     $haeufigkeit = $row.haeufigkeit
                     $wichtigkeit = $row.wichtigkeit
                     $fehlerbehebung = $row.fehlerbehebung
                     
-                    # In DataGridView einfügen
+                    # In DataGridView einfuegen
                     $rowIndex = $dataGridView.Rows.Add($kategorie, $beschreibung, $haeufigkeit, $wichtigkeit, $fehlerbehebung)
                     
-                    # Wichtigkeit als Zellfarbe darstellen (je höher, desto intensiver)
+                    # Wichtigkeit als Zellfarbe darstellen (je hoeher, desto intensiver)
                     # Konvertieren zu Integer, falls es als String kommt
                     try {
                         if ($wichtigkeit -match "^\d+-\d+$") {
-                            # Falls Format "1-10" ist, nehme den höheren Wert
+                            # Falls Format "1-10" ist, nehme den hoeheren Wert
                             $wichtigkeit = [int]($wichtigkeit.Split('-')[1])
                         }
                         else {
@@ -980,12 +980,12 @@ function PerformAnalysis {
                         }
                     }
                     catch {
-                        # Fallback, falls Konvertierung fehlschlägt
+                        # Fallback, falls Konvertierung fehlschlaegt
                         $wichtigkeit = 5
                     }
                     $priority = [Math]::Min([Math]::Max($wichtigkeit, 1), 10)  # Zwischen 1-10 begrenzen
                     
-                    # Farbintensität basierend auf Wichtigkeit
+                    # Farbintensitaet basierend auf Wichtigkeit
                     $colorIntensity = 80 + ($priority * 15)  # 80-230 Bereich
                     
                     # Farbcodierung nach Wichtigkeit
@@ -1005,7 +1005,7 @@ function PerformAnalysis {
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = $darkText
                     }
                     else {
-                        # Niedrigste Wichtigkeit (1-2): Grün
+                        # Niedrigste Wichtigkeit (1-2): Gruen
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 40, [Math]::Min($colorIntensity, 230), 40)
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = $darkText
                     }
