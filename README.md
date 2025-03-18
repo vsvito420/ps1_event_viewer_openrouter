@@ -2,6 +2,8 @@
 
 Dieses PowerShell-Tool analysiert Windows-Ereignisprotokolle mit Hilfe von Claude 3.7 Sonnet (via OpenRouter) und stellt die Ergebnisse in einer benutzerfreundlichen GUI dar.
 
+![Screenshot](image.png)
+
 ## Funktionen
 
 - Erfasst die letzten 50 Ereignisse aus dem Windows-Systemprotokoll

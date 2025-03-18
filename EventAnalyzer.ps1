@@ -109,67 +109,114 @@ $darkControlBackground = [System.Drawing.Color]::FromArgb(255, 40, 40, 40)
 # Formular erstellen - Position angepasst, um Inhaltsabschneiden zu vermeiden
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Windows Event Analyzer - Dunkles Theme"
-$form.Size = New-Object System.Drawing.Size(900, 700)
+$form.Size = New-Object System.Drawing.Size(1100, 700)
 $form.StartPosition = "CenterScreen"  # Automatisch zentrieren
 $form.Icon = [System.Drawing.SystemIcons]::Information
 $form.BackColor = $darkBackground
 $form.ForeColor = $darkText
-$form.MinimumSize = New-Object System.Drawing.Size(650, 500)  # Minimalgröße hinzugefügt
-
-# Menu erstellen mit dunklem Theme
-$menuStrip = New-Object System.Windows.Forms.MenuStrip
-$menuStrip.BackColor = $darkMenuBackground
-$menuStrip.ForeColor = $darkText
-$menuStrip.RenderMode = [System.Windows.Forms.ToolStripRenderMode]::Professional
+$form.MinimumSize = New-Object System.Drawing.Size(800, 500)  # Minimalgröße hinzugefügt
 
 # Import für DataGridView-Styling
 Add-Type -AssemblyName System.Windows.Forms.DataVisualization
 
-$fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem("Datei")
-$fileMenu.ForeColor = $darkText
-$saveMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Analyse speichern...")
-$saveMenuItem.ForeColor = $darkText
-$exitMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Beenden")
-$exitMenuItem.ForeColor = $darkText
+# Globale Variablen für die Ansichtsmodi
+$script:viewMode = "both"  # Mögliche Werte: "both", "text", "grid"
 
-$viewMenu = New-Object System.Windows.Forms.ToolStripMenuItem("Ansicht")
-$viewMenu.ForeColor = $darkText
-$refreshMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Neu analysieren")
-$refreshMenuItem.ForeColor = $darkText
+# Seitenleiste für Menü und Konfiguration
+$sidebarPanel = New-Object System.Windows.Forms.Panel
+$sidebarPanel.Dock = [System.Windows.Forms.DockStyle]::Left
+$sidebarPanel.Width = 220
+$sidebarPanel.BackColor = $darkControlBackground
+$sidebarPanel.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
 
-# Panel für Konfigurationselemente hinzufügen (am Anfang)
+# Funktion zum Umschalten des Anzeigemodus
+function Set-ViewMode {
+    param(
+        [string]$Mode # "both", "text", "grid"
+    )
+
+    $script:viewMode = $Mode
+    
+    switch ($Mode) {
+        "both" {
+            $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal
+            $splitContainer.SplitterDistance = $splitContainer.Height / 2
+            $splitContainer.Panel1Collapsed = $false
+            $splitContainer.Panel2Collapsed = $false
+            $bothViewButton.BackColor = $darkAccent
+            $textViewButton.BackColor = $darkMenuBackground
+            $gridViewButton.BackColor = $darkMenuBackground
+        }
+        "text" {
+            $splitContainer.Panel1Collapsed = $false
+            $splitContainer.Panel2Collapsed = $true
+            $bothViewButton.BackColor = $darkMenuBackground
+            $textViewButton.BackColor = $darkAccent
+            $gridViewButton.BackColor = $darkMenuBackground
+        }
+        "grid" {
+            $splitContainer.Panel1Collapsed = $true
+            $splitContainer.Panel2Collapsed = $false
+            $bothViewButton.BackColor = $darkMenuBackground
+            $textViewButton.BackColor = $darkMenuBackground
+            $gridViewButton.BackColor = $darkAccent
+        }
+    }
+}
+
+# Container für Konfigurationselemente in der Sidebar
 $configPanel = New-Object System.Windows.Forms.Panel
 $configPanel.Dock = [System.Windows.Forms.DockStyle]::Top
-$configPanel.Height = 120  # Erhöht für Notizbox (war 80)
+$configPanel.Height = 320
 $configPanel.BackColor = $darkControlBackground
-$configPanel.Padding = New-Object System.Windows.Forms.Padding(10, 5, 10, 5)
+$configPanel.Padding = New-Object System.Windows.Forms.Padding(5, 5, 5, 5)
 
-# Steuerelemente für Konfigurationspanel
+# Überschrift für die Seitenleiste
+$titleLabel = New-Object System.Windows.Forms.Label
+$titleLabel.Text = "Windows Event Analyzer"
+$titleLabel.ForeColor = $darkText
+$titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
+$titleLabel.Location = New-Object System.Drawing.Point(10, 10)
+$titleLabel.Size = New-Object System.Drawing.Size(200, 25)
+$sidebarPanel.Controls.Add($titleLabel)
+
+# Trennlinie unter der Überschrift
+$separatorLabel1 = New-Object System.Windows.Forms.Label
+$separatorLabel1.Text = ""
+$separatorLabel1.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+$separatorLabel1.Location = New-Object System.Drawing.Point(10, 40)
+$separatorLabel1.Size = New-Object System.Drawing.Size(200, 2)
+$sidebarPanel.Controls.Add($separatorLabel1)
+
+# Einstellungen in der Sidebar
 $modelLabel = New-Object System.Windows.Forms.Label
 $modelLabel.Text = "KI-Modell:"
 $modelLabel.ForeColor = $darkText
-$modelLabel.Location = New-Object System.Drawing.Point(10, 10)
+$modelLabel.Location = New-Object System.Drawing.Point(10, 50)
 $modelLabel.Size = New-Object System.Drawing.Size(80, 20)
+$sidebarPanel.Controls.Add($modelLabel)
 
 $modelComboBox = New-Object System.Windows.Forms.ComboBox
 $modelComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
 $modelComboBox.BackColor = $darkBackground
 $modelComboBox.ForeColor = $darkText
-$modelComboBox.Location = New-Object System.Drawing.Point(90, 10)
-$modelComboBox.Size = New-Object System.Drawing.Size(220, 20)
+$modelComboBox.Location = New-Object System.Drawing.Point(10, 70)
+$modelComboBox.Size = New-Object System.Drawing.Size(200, 20)
 $modelComboBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 
 foreach ($model in $availableModels.Keys) {
     [void]$modelComboBox.Items.Add($model)
 }
 $modelComboBox.SelectedItem = "Claude 3.7 Sonnet"  # Standard-Modell auswählen
+$sidebarPanel.Controls.Add($modelComboBox)
 
-# Ereignisanzahl Slider hinzufügen
+# Ereignisanzahl Slider
 $eventsLabel = New-Object System.Windows.Forms.Label
 $eventsLabel.Text = "Ereignisanzahl: 50"
 $eventsLabel.ForeColor = $darkText
-$eventsLabel.Location = New-Object System.Drawing.Point(10, 45)
+$eventsLabel.Location = New-Object System.Drawing.Point(10, 100)
 $eventsLabel.Size = New-Object System.Drawing.Size(150, 20)
+$sidebarPanel.Controls.Add($eventsLabel)
 
 # TrackBar für Ereignisanzahl (50-250)
 $eventsSlider = New-Object System.Windows.Forms.TrackBar
@@ -179,9 +226,10 @@ $eventsSlider.Value = 50  # Standardwert
 $eventsSlider.TickFrequency = 25
 $eventsSlider.LargeChange = 25
 $eventsSlider.SmallChange = 5
-$eventsSlider.Location = New-Object System.Drawing.Point(160, 40)
-$eventsSlider.Size = New-Object System.Drawing.Size(150, 45)
+$eventsSlider.Location = New-Object System.Drawing.Point(10, 120)
+$eventsSlider.Size = New-Object System.Drawing.Size(200, 45)
 $eventsSlider.BackColor = $darkControlBackground
+$sidebarPanel.Controls.Add($eventsSlider)
 
 # Label für aktuellen Wert
 $eventsSlider.Add_ValueChanged({
@@ -190,19 +238,86 @@ $eventsSlider.Add_ValueChanged({
 
 # Notizbox für zusätzliche Anweisungen an die KI
 $notizLabel = New-Object System.Windows.Forms.Label
-$notizLabel.Text = "Zusätzliche Anweisungen an die KI:"
+$notizLabel.Text = "Zusätzliche Anweisungen:"
 $notizLabel.ForeColor = $darkText
-$notizLabel.Location = New-Object System.Drawing.Point(10, 80)
-$notizLabel.Size = New-Object System.Drawing.Size(200, 20)
+$notizLabel.Location = New-Object System.Drawing.Point(10, 165)
+$notizLabel.Size = New-Object System.Drawing.Size(150, 20)
+$sidebarPanel.Controls.Add($notizLabel)
 
 $notizTextBox = New-Object System.Windows.Forms.TextBox
-$notizTextBox.Location = New-Object System.Drawing.Point(10, 100)
-$notizTextBox.Size = New-Object System.Drawing.Size(300, 35)
+$notizTextBox.Location = New-Object System.Drawing.Point(10, 185)
+$notizTextBox.Size = New-Object System.Drawing.Size(200, 60)
 $notizTextBox.Multiline = $true
 $notizTextBox.BackColor = $darkBackground
 $notizTextBox.ForeColor = $darkText
-$notizTextBox.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$notizTextBox.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $notizTextBox.Text = "z.B. Ignoriere Programme wie Chrome oder Outlook"
+$sidebarPanel.Controls.Add($notizTextBox)
+
+# Trennlinie vor Ansichtsmodus
+$separatorLabel2 = New-Object System.Windows.Forms.Label
+$separatorLabel2.Text = ""
+$separatorLabel2.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+$separatorLabel2.Location = New-Object System.Drawing.Point(10, 255)
+$separatorLabel2.Size = New-Object System.Drawing.Size(200, 2)
+$sidebarPanel.Controls.Add($separatorLabel2)
+
+# Überschrift für Ansichtsmodus
+$viewModeLabel = New-Object System.Windows.Forms.Label
+$viewModeLabel.Text = "Ansichtsmodus:"
+$viewModeLabel.ForeColor = $darkText
+$viewModeLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+$viewModeLabel.Location = New-Object System.Drawing.Point(10, 265)
+$viewModeLabel.Size = New-Object System.Drawing.Size(150, 20)
+$sidebarPanel.Controls.Add($viewModeLabel)
+
+# Buttons für Ansichtsmodus
+$bothViewButton = New-Object System.Windows.Forms.Button
+$bothViewButton.Text = "Text und Tabelle"
+$bothViewButton.BackColor = $darkAccent  # Standardmäßig aktiv
+$bothViewButton.ForeColor = $darkText
+$bothViewButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$bothViewButton.Location = New-Object System.Drawing.Point(10, 290)
+$bothViewButton.Size = New-Object System.Drawing.Size(200, 30)
+$bothViewButton.Add_Click({ Set-ViewMode -Mode "both" })
+$sidebarPanel.Controls.Add($bothViewButton)
+
+$textViewButton = New-Object System.Windows.Forms.Button
+$textViewButton.Text = "Nur Text"
+$textViewButton.BackColor = $darkMenuBackground
+$textViewButton.ForeColor = $darkText
+$textViewButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$textViewButton.Location = New-Object System.Drawing.Point(10, 325)
+$textViewButton.Size = New-Object System.Drawing.Size(200, 30)
+$textViewButton.Add_Click({ Set-ViewMode -Mode "text" })
+$sidebarPanel.Controls.Add($textViewButton)
+
+$gridViewButton = New-Object System.Windows.Forms.Button
+$gridViewButton.Text = "Nur Tabelle"
+$gridViewButton.BackColor = $darkMenuBackground
+$gridViewButton.ForeColor = $darkText
+$gridViewButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$gridViewButton.Location = New-Object System.Drawing.Point(10, 360)
+$gridViewButton.Size = New-Object System.Drawing.Size(200, 30)
+$gridViewButton.Add_Click({ Set-ViewMode -Mode "grid" })
+$sidebarPanel.Controls.Add($gridViewButton)
+
+# Trennlinie vor Aktionen
+$separatorLabel3 = New-Object System.Windows.Forms.Label
+$separatorLabel3.Text = ""
+$separatorLabel3.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+$separatorLabel3.Location = New-Object System.Drawing.Point(10, 400)
+$separatorLabel3.Size = New-Object System.Drawing.Size(200, 2)
+$sidebarPanel.Controls.Add($separatorLabel3)
+
+# Überschrift für Aktionen
+$actionLabel = New-Object System.Windows.Forms.Label
+$actionLabel.Text = "Aktionen:"
+$actionLabel.ForeColor = $darkText
+$actionLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+$actionLabel.Location = New-Object System.Drawing.Point(10, 410)
+$actionLabel.Size = New-Object System.Drawing.Size(100, 20)
+$sidebarPanel.Controls.Add($actionLabel)
 
 # Analyse-Button hinzufügen
 $analyzeButton = New-Object System.Windows.Forms.Button
@@ -210,23 +325,56 @@ $analyzeButton.Text = "Ereignisse analysieren"
 $analyzeButton.BackColor = $darkAccent
 $analyzeButton.ForeColor = $darkText
 $analyzeButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$analyzeButton.Location = New-Object System.Drawing.Point(330, 10)
-$analyzeButton.Size = New-Object System.Drawing.Size(150, 60)
+$analyzeButton.Location = New-Object System.Drawing.Point(10, 435)
+$analyzeButton.Size = New-Object System.Drawing.Size(200, 40)
+$analyzeButton.Add_Click({ PerformAnalysis })
+$sidebarPanel.Controls.Add($analyzeButton)
 
-# Kontrollelemente zum Konfigurationspanel hinzufügen
-$configPanel.Controls.Add($modelLabel)
-$configPanel.Controls.Add($modelComboBox)
-$configPanel.Controls.Add($eventsLabel)
-$configPanel.Controls.Add($eventsSlider)
-$configPanel.Controls.Add($notizLabel)
-$configPanel.Controls.Add($notizTextBox)
-$configPanel.Controls.Add($analyzeButton)
+# Speichern-Button
+$saveButton = New-Object System.Windows.Forms.Button
+$saveButton.Text = "Analyse speichern..."
+$saveButton.BackColor = $darkMenuBackground
+$saveButton.ForeColor = $darkText
+$saveButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$saveButton.Location = New-Object System.Drawing.Point(10, 480)
+$saveButton.Size = New-Object System.Drawing.Size(200, 30)
+$saveButton.Add_Click({
+        $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
+        $saveFileDialog.Filter = "Textdatei (*.txt)|*.txt|Markdown (*.md)|*.md|All files (*.*)|*.*"
+        $saveFileDialog.InitialDirectory = $outputDir
+        $saveFileDialog.FileName = "Ereignisanalyse_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').md"
+
+        if ($saveFileDialog.ShowDialog() -eq 'OK') {
+            # UTF-8 ohne BOM verwenden, um Encoding-Probleme zu vermeiden
+            $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+            [System.IO.File]::WriteAllText($saveFileDialog.FileName, $textBox.Text, $Utf8NoBomEncoding)
+    
+            [System.Windows.Forms.MessageBox]::Show(
+                "Analyse wurde gespeichert unter:`n$($saveFileDialog.FileName)", 
+                "Gespeichert",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Information
+            )
+        }
+    })
+$sidebarPanel.Controls.Add($saveButton)
+
+# Beenden-Button
+$exitButton = New-Object System.Windows.Forms.Button
+$exitButton.Text = "Beenden"
+$exitButton.BackColor = $darkMenuBackground
+$exitButton.ForeColor = $darkText
+$exitButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$exitButton.Location = New-Object System.Drawing.Point(10, 515)
+$exitButton.Size = New-Object System.Drawing.Size(200, 30)
+$exitButton.Add_Click({ $form.Close() })
+$sidebarPanel.Controls.Add($exitButton)
 
 # SplitContainer erstellen für geteilte Ansicht (links Text, rechts Tabelle)
 $splitContainer = New-Object System.Windows.Forms.SplitContainer
 $splitContainer.Dock = [System.Windows.Forms.DockStyle]::Fill
-$splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal  # Horizontal = links/rechts
-$splitContainer.SplitterDistance = 450  # Anfängliche Teilung
+$splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical  # Vertical = links/rechts
+$splitContainer.SplitterDistance = 550  # Anfängliche Teilung (links breiter)
 $splitContainer.BackColor = $darkBackground
 $splitContainer.Panel1.BackColor = $darkBackground
 $splitContainer.Panel1.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
@@ -307,47 +455,13 @@ $statusLabel.Text = "Bereit | Ereignisprotokoll: System | Modell: $aiModell"
 $statusLabel.ForeColor = $darkText
 $statusStrip.Items.Add($statusLabel)
 
-# Menü-Handler
-$saveMenuItem.Add_Click({
-        $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
-        $saveFileDialog.Filter = "Textdatei (*.txt)|*.txt|Markdown (*.md)|*.md|All files (*.*)|*.*"
-        $saveFileDialog.InitialDirectory = $outputDir
-        $saveFileDialog.FileName = "Ereignisanalyse_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').md"
-
-        if ($saveFileDialog.ShowDialog() -eq 'OK') {
-            # UTF-8 ohne BOM verwenden, um Encoding-Probleme zu vermeiden
-            $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-            [System.IO.File]::WriteAllText($saveFileDialog.FileName, $textBox.Text, $Utf8NoBomEncoding)
-        
-            [System.Windows.Forms.MessageBox]::Show(
-                "Analyse wurde gespeichert unter:`n$($saveFileDialog.FileName)", 
-                "Gespeichert",
-                [System.Windows.Forms.MessageBoxButtons]::OK,
-                [System.Windows.Forms.MessageBoxIcon]::Information
-            )
-        }
-    })
-
-$exitMenuItem.Add_Click({
-        $form.Close()
-    })
-
-$refreshMenuItem.Add_Click({
-        PerformAnalysis
-    })
-
-$fileMenu.DropDownItems.Add($saveMenuItem)
-$fileMenu.DropDownItems.Add($exitMenuItem)
-$viewMenu.DropDownItems.Add($refreshMenuItem)
-$menuStrip.Items.Add($fileMenu)
-$menuStrip.Items.Add($viewMenu)
-$form.Controls.Add($menuStrip)
-$form.MainMenuStrip = $menuStrip
+# Die Menüleiste wurde entfernt und durch die Seitenleiste ersetzt
+# Alle Menübefehle werden nun direkt über die Seitenleiste ausgeführt
 
 # Elemente zum Formular hinzufügen
 $form.Controls.Add($statusStrip)
 $form.Controls.Add($panel)
-$form.Controls.Add($configPanel)
+$form.Controls.Add($sidebarPanel)
 
 # --- Funktion zum Erfassen der Ereignisdaten ---
 function Get-EventLogData {
