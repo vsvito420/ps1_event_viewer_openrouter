@@ -471,6 +471,8 @@ $dataGridView.DefaultCellStyle.SelectionForeColor = $darkText
 $dataGridView.EnableHeadersVisualStyles = $false
 $dataGridView.ColumnHeadersHeight = 36  # Erhoeht (war 30)
 $dataGridView.AutoSizeColumnsMode = [System.Windows.Forms.DataGridViewAutoSizeColumnsMode]::Fill
+$dataGridView.AutoSizeRowsMode = [System.Windows.Forms.DataGridViewAutoSizeRowsMode]::AllCells
+$dataGridView.DefaultCellStyle.WrapMode = [System.Windows.Forms.DataGridViewTriState]::True
 
 # Groessere Schrift fuer DataGridView
 $dataGridView.DefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI", 11)
@@ -478,11 +480,11 @@ $dataGridView.ColumnHeadersDefaultCellStyle.Font = New-Object System.Drawing.Fon
 
 # Initialisieren mit leeren Spalten fuer die Analysetabelle
 $columns = @(
-    @{Name = "Problem"; Header = "Problem"; Width = 150 }, # Praegnanter Name statt allgemeiner Kategorie
-    @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 200 },
-    @{Name = "Haeufigkeit"; Header = "Haeufigkeit"; Width = 80 },
-    @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 80 },
-    @{Name = "Fehlerbehebung"; Header = "Fehlerbehebung"; Width = 200 }
+    @{Name = "Problem"; Header = "Problem"; Width = 120 }, # Praegnanter Name statt allgemeiner Kategorie
+    @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 180 },
+    @{Name = "Haeufigkeit"; Header = "Haeufigkeit"; Width = 70 },
+    @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 70 },
+    @{Name = "Fehlerbehebung"; Header = "Fehlerbehebung"; Width = 300 }
 )
 
 foreach ($column in $columns) {
@@ -490,6 +492,16 @@ foreach ($column in $columns) {
     $newColumn.Name = $column.Name
     $newColumn.HeaderText = $column.Header
     $newColumn.Width = $column.Width
+    
+    # Setze unterschiedliche FillWeight-Werte um die Proportionen zu steuern
+    switch ($column.Name) {
+        "Problem" { $newColumn.FillWeight = 15 }
+        "Beschreibung" { $newColumn.FillWeight = 25 }
+        "Haeufigkeit" { $newColumn.FillWeight = 10 }
+        "Wichtigkeit" { $newColumn.FillWeight = 10 }
+        "Fehlerbehebung" { $newColumn.FillWeight = 40 } # Mehr Platz für Fehlerbehebung
+    }
+    
     $dataGridView.Columns.Add($newColumn)
 }
 
