@@ -1,6 +1,6 @@
 # --- Windows Event Analyzer mit OpenRouter AI (Terminal-Version) ---
 # Analysiert Windows-Ereignisprotokolle mit Hilfe von KI via OpenRouter API
-# Terminal-Version mit nativer PowerShell-Farbunterstützung
+# Terminal-Version mit nativer PowerShell-Farbunterstuetzung
 
 # --- Konfiguration ---
 # Setze die Ausgabecodierung auf UTF-8
@@ -95,15 +95,15 @@ $availableModels = @{
 # Standard-Modell ist Claude 3.7 Sonnet
 $aiModell = $availableModels["Claude 3.7 Sonnet"]
 
-# Klare Anzeige für Start des Programms
+# Klare Anzeige fuer Start des Programms
 Clear-Host
 Write-Host "Windows Event Analyzer (Terminal-Version)" -ForegroundColor Cyan -NoNewline
 Write-Host " v1.0 " -ForegroundColor White -BackgroundColor Blue
-Write-Host "Analysiert Ereignisse mit Hilfe von KI über die OpenRouter API" -ForegroundColor DarkGray
+Write-Host "Analysiert Ereignisse mit Hilfe von KI ueber die OpenRouter API" -ForegroundColor DarkGray
 Write-Host "-".PadRight(80, "-")
 
 # Modell-Auswahl anzeigen
-Write-Host "`nVerfügbare KI-Modelle:" -ForegroundColor Cyan
+Write-Host "`nVerfuegbare KI-Modelle:" -ForegroundColor Cyan
 $i = 1
 $modelList = @{}
 foreach ($model in $availableModels.Keys) {
@@ -120,11 +120,11 @@ foreach ($model in $availableModels.Keys) {
     $i++
 }
 
-$modelChoice = Read-Host "`nWähle ein Modell (1-$($availableModels.Count)) [Standard: 1]"
+$modelChoice = Read-Host "`nWaehle ein Modell (1-$($availableModels.Count)) [Standard: 1]"
 if ($modelChoice -ne "" -and $modelChoice -match '^\d+$' -and [int]$modelChoice -ge 1 -and [int]$modelChoice -le $availableModels.Count) {
     $selectedModel = $modelList[[int]$modelChoice]
     $aiModell = $availableModels[$selectedModel]
-    Write-Host "Ausgewähltes Modell: " -ForegroundColor Green -NoNewline
+    Write-Host "Ausgewaehltes Modell: " -ForegroundColor Green -NoNewline
     Write-Host "$selectedModel ($aiModell)" -ForegroundColor Green
 }
 else {
@@ -150,14 +150,14 @@ try {
         Write-Host "Internetverbindung OK" -ForegroundColor Green
     }
     else {
-        Write-Host "Keine Internetverbindung verfügbar. Die API kann nicht erreicht werden." -ForegroundColor Red
+        Write-Host "Keine Internetverbindung verfuegbar. Die API kann nicht erreicht werden." -ForegroundColor Red
         Write-Host "Starte Demo-Modus stattdessen..." -ForegroundColor Yellow
         & "$PSScriptRoot\DemoEventAnalyzer.ps1"
         exit
     }
 }
 catch {
-    Write-Host "Fehler beim Prüfen der Internetverbindung: $_" -ForegroundColor Red
+    Write-Host "Fehler beim Pruefen der Internetverbindung: $_" -ForegroundColor Red
     Write-Host "Starte Demo-Modus stattdessen..." -ForegroundColor Yellow
     & "$PSScriptRoot\DemoEventAnalyzer.ps1"
     exit
@@ -168,17 +168,17 @@ $apiKey = Get-EnvVariable -Key "OPENROUTER_API_KEY" -FilePath $configFile
 
 if ($null -eq $apiKey -or $apiKey -eq "") {
     Write-Host "`n--- OpenRouter API-Schluessel Konfiguration ---" -ForegroundColor Cyan
-    Write-Host "Ein OpenRouter API-Schlüssel ist erforderlich für die Analyse mit $selectedModel."
-    Write-Host "Der Schlüssel wird in $configFile gespeichert und verwendet." -ForegroundColor Yellow
+    Write-Host "Ein OpenRouter API-Schluessel ist erforderlich fuer die Analyse mit $selectedModel."
+    Write-Host "Der Schluessel wird in $configFile gespeichert und verwendet." -ForegroundColor Yellow
     
-    $apiKey = Read-Host "Bitte gib deinen OpenRouter API-Schlüssel ein"
+    $apiKey = Read-Host "Bitte gib deinen OpenRouter API-Schluessel ein"
     
     if ($apiKey -ne "") {
         Set-EnvVariable -Key "OPENROUTER_API_KEY" -Value $apiKey -FilePath $configFile
-        Write-Host "API-Schlüssel erfolgreich gespeichert." -ForegroundColor Green
+        Write-Host "API-Schluessel erfolgreich gespeichert." -ForegroundColor Green
     }
     else {
-        Write-Error "Kein API-Schlüssel eingegeben. Das Skript wird beendet."
+        Write-Error "Kein API-Schluessel eingegeben. Das Skript wird beendet."
         exit
     }
 }
@@ -262,13 +262,13 @@ Vermeide alle sonstigen Sonderzeichen, die nicht im ASCII-Zeichensatz enthalten 
         Write-Host "`nSende API-Anfrage an OpenRouter:" -ForegroundColor Yellow
         Write-Host "URL: $ApiUrl" -ForegroundColor DarkGray
         Write-Host "Modell: $Model" -ForegroundColor DarkGray
-        Write-Host "API-Schlüssel: $(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungültig oder zu kurz" })" -ForegroundColor DarkGray
+        Write-Host "API-Schluessel: $(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungueltig oder zu kurz" })" -ForegroundColor DarkGray
         
         # Fortschrittsanzeige starten
         Write-Host -NoNewline "Warte auf Antwort... " -ForegroundColor Yellow
         $progressTimer = [System.Diagnostics.Stopwatch]::StartNew()
         
-        # Tatsächliche Anfrage senden
+        # Tatsaechliche Anfrage senden
         $response = Invoke-RestMethod -Uri $ApiUrl -Method Post -Headers $headers -Body $body -ErrorAction Stop
         
         # Hier nehmen wir an, dass die Antwort in $response.choices[0].message.content enthalten ist.
@@ -289,19 +289,19 @@ Vermeide alle sonstigen Sonderzeichen, die nicht im ASCII-Zeichensatz enthalten 
 $_
 
 ## Moegliche Ursachen
-- Ungültiger API-Schlüssel (überprüfe den Schlüssel in der .env Datei)
+- Ungueltiger API-Schluessel (ueberpruefe den Schluessel in der .env Datei)
 - Netzwerkprobleme oder keine Internetverbindung
-- OpenRouter-Dienst ist möglicherweise nicht erreichbar
+- OpenRouter-Dienst ist moeglicherweise nicht erreichbar
 - Firewall oder Antivirus blockiert die Verbindung
 
-## Überprüfung des API-Schlüssels
-Aktuell verwendeter API-Schlüssel: `$(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungültig oder zu kurz" })`
+## Ueberpruefung des API-Schluessels
+Aktuell verwendeter API-Schluessel: `$(if ($ApiKey.Length -gt 8) { $ApiKey.Substring(0, 4) + "..." + $ApiKey.Substring($ApiKey.Length - 4) } else { "Ungueltig oder zu kurz" })`
 Konfigurationsdatei: `$configFile`
 
 ## Was du tun kannst
-1. Überprüfe deine Internetverbindung
-2. Stelle sicher, dass der API-Schlüssel in der .env Datei korrekt ist
-3. Besuche [OpenRouter](https://openrouter.ai) um zu prüfen, ob der Dienst verfügbar ist
+1. Ueberpruefe deine Internetverbindung
+2. Stelle sicher, dass der API-Schluessel in der .env Datei korrekt ist
+3. Besuche [OpenRouter](https://openrouter.ai) um zu pruefen, ob der Dienst verfuegbar ist
 
 Du kannst auch die Demo-Version des Skripts ohne API ausprobieren: `.\DemoEventAnalyzer.ps1`
 "@
@@ -310,7 +310,7 @@ Du kannst auch die Demo-Version des Skripts ohne API ausprobieren: `.\DemoEventA
     }
 }
 
-# --- Funktion zum Parsen von Markdown für farbige Terminaldarstellung ---
+# --- Funktion zum Parsen von Markdown fuer farbige Terminaldarstellung ---
 function Format-MarkdownForTerminal {
     param (
         [string]$MarkdownText
@@ -323,27 +323,27 @@ function Format-MarkdownForTerminal {
     
     # Durch jede Zeile gehen
     foreach ($line in $lines) {
-        # Überschrift Level 1 (# Heading 1)
+        # Ueberschrift Level 1 (# Heading 1)
         if ($line -match '^# (.+)') {
             Write-Host $Matches[1] -ForegroundColor Cyan -BackgroundColor DarkBlue
             Write-Host ""
         }
-        # Überschrift Level 2 (## Heading 2)
+        # Ueberschrift Level 2 (## Heading 2)
         elseif ($line -match '^## (.+)') {
             Write-Host $Matches[1] -ForegroundColor Cyan
             Write-Host ""
         }
-        # Überschrift Level 3 (### Heading 3)
+        # Ueberschrift Level 3 (### Heading 3)
         elseif ($line -match '^### (.+)') {
             Write-Host $Matches[1] -ForegroundColor Blue
             Write-Host ""
         }
-        # Aufzählungspunkte
+        # Aufzaehlungspunkte
         elseif ($line -match '^(\s*[-*+]\s+)(.+)$') {
-            Write-Host "  • " -ForegroundColor Yellow -NoNewline
+            Write-Host "  * " -ForegroundColor Yellow -NoNewline
             Write-Host $Matches[2] -ForegroundColor White
         }
-        # Code-Blöcke (nur Start/Ende Marker)
+        # Code-Bloecke (nur Start/Ende Marker)
         elseif ($line -match '^```') {
             $inCodeBlock = !$inCodeBlock
             if ($inCodeBlock) {
@@ -355,7 +355,7 @@ function Format-MarkdownForTerminal {
                 Write-Host ""
             }
         }
-        # Inhalt von Code-Blöcken
+        # Inhalt von Code-Bloecken
         elseif ($inCodeBlock) {
             Write-Host "| $line" -ForegroundColor Magenta
         }
@@ -406,7 +406,7 @@ Write-Host "-".PadRight(80, "-")
 Format-MarkdownForTerminal -MarkdownText $analyseErgebnis
 
 # Ergebnis speichern?
-$saveChoice = Read-Host "`nMöchtest du das Ergebnis speichern? (j/n)"
+$saveChoice = Read-Host "`nMoechtest du das Ergebnis speichern? (j/n)"
 if ($saveChoice -eq "j" -or $saveChoice -eq "J") {
     $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
     $filename = "Ereignisanalyse_$timestamp.md"
@@ -426,5 +426,5 @@ if ($saveChoice -eq "j" -or $saveChoice -eq "J") {
 }
 
 Write-Host "`nAnalyse abgeschlossen." -ForegroundColor Green
-Write-Host "Drücke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
+Write-Host "Druecke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
