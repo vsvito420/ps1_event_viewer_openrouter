@@ -121,6 +121,33 @@ Add-Type -AssemblyName System.Windows.Forms.DataVisualization
 
 # Globale Variablen für die Ansichtsmodi
 $script:viewMode = "both"  # Mögliche Werte: "both", "text", "grid"
+$script:splitOrientation = "horizontal"  # Mögliche Werte: "horizontal", "vertical"
+
+# Funktion zum Umschalten der Split-Orientierung
+function Switch-SplitOrientation {
+    if ($script:splitOrientation -eq "horizontal") {
+        $script:splitOrientation = "vertical"
+        $splitToggleButton.Text = "Horizontal splitten"
+        # In Windows Forms ist "Horizontal" die Orientierung für oben/unten Aufteilung
+        $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal
+    }
+    else {
+        $script:splitOrientation = "horizontal"
+        $splitToggleButton.Text = "Vertikal splitten"
+        # In Windows Forms ist "Vertical" die Orientierung für links/rechts Aufteilung
+        $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
+    }
+    
+    # Splitter-Distanz anpassen, abhängig von der Orientierung
+    if ($splitContainer.Orientation -eq [System.Windows.Forms.Orientation]::Vertical) {
+        # Für horizontales Splitting (links/rechts)
+        $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(550, $splitContainer.Width / 2), $splitContainer.Width * 0.6)
+    }
+    else {
+        # Für vertikales Splitting (oben/unten)
+        $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(300, $splitContainer.Height / 2), $splitContainer.Height * 0.6)
+    }
+}
 
 # Seitenleiste für Menü und Konfiguration
 $sidebarPanel = New-Object System.Windows.Forms.Panel
@@ -139,14 +166,24 @@ function Set-ViewMode {
     
     switch ($Mode) {
         "both" {
-            # Beide Panels sichtbar - Text links, Tabelle rechts
-            $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
-            $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(550, $splitContainer.Width / 2), $splitContainer.Width * 0.6)
+            # Beide Panels sichtbar
+            # Orientierung wird durch $script:splitOrientation bestimmt
+            if ($script:splitOrientation -eq "horizontal") {
+                # Links/rechts
+                $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
+                $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(550, $splitContainer.Width / 2), $splitContainer.Width * 0.6)
+            }
+            else {
+                # Oben/unten
+                $splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal
+                $splitContainer.SplitterDistance = [Math]::Min([Math]::Max(300, $splitContainer.Height / 2), $splitContainer.Height * 0.6)
+            }
             $splitContainer.Panel1Collapsed = $false
             $splitContainer.Panel2Collapsed = $false
             $bothViewButton.BackColor = $darkAccent
             $textViewButton.BackColor = $darkMenuBackground
             $gridViewButton.BackColor = $darkMenuBackground
+            $splitToggleButton.Enabled = $true
         }
         "text" {
             # Nur Textpanel anzeigen (links)
@@ -155,6 +192,7 @@ function Set-ViewMode {
             $bothViewButton.BackColor = $darkMenuBackground
             $textViewButton.BackColor = $darkAccent
             $gridViewButton.BackColor = $darkMenuBackground
+            $splitToggleButton.Enabled = $false
         }
         "grid" {
             # Nur Tabelle anzeigen (rechts)
@@ -163,6 +201,7 @@ function Set-ViewMode {
             $bothViewButton.BackColor = $darkMenuBackground
             $textViewButton.BackColor = $darkMenuBackground
             $gridViewButton.BackColor = $darkAccent
+            $splitToggleButton.Enabled = $false
         }
     }
 }
@@ -305,11 +344,22 @@ $gridViewButton.Size = New-Object System.Drawing.Size(200, 30)
 $gridViewButton.Add_Click({ Set-ViewMode -Mode "grid" })
 $sidebarPanel.Controls.Add($gridViewButton)
 
+# Button für die Split-Orientierung (nur aktiv wenn beide Panels sichtbar)
+$splitToggleButton = New-Object System.Windows.Forms.Button
+$splitToggleButton.Text = "Vertikal splitten"
+$splitToggleButton.BackColor = $darkMenuBackground
+$splitToggleButton.ForeColor = $darkText
+$splitToggleButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$splitToggleButton.Location = New-Object System.Drawing.Point(10, 395)
+$splitToggleButton.Size = New-Object System.Drawing.Size(200, 30)
+$splitToggleButton.Add_Click({ Switch-SplitOrientation })
+$sidebarPanel.Controls.Add($splitToggleButton)
+
 # Trennlinie vor Aktionen
 $separatorLabel3 = New-Object System.Windows.Forms.Label
 $separatorLabel3.Text = ""
 $separatorLabel3.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
-$separatorLabel3.Location = New-Object System.Drawing.Point(10, 400)
+$separatorLabel3.Location = New-Object System.Drawing.Point(10, 435)
 $separatorLabel3.Size = New-Object System.Drawing.Size(200, 2)
 $sidebarPanel.Controls.Add($separatorLabel3)
 
@@ -318,7 +368,7 @@ $actionLabel = New-Object System.Windows.Forms.Label
 $actionLabel.Text = "Aktionen:"
 $actionLabel.ForeColor = $darkText
 $actionLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-$actionLabel.Location = New-Object System.Drawing.Point(10, 410)
+$actionLabel.Location = New-Object System.Drawing.Point(10, 445)
 $actionLabel.Size = New-Object System.Drawing.Size(100, 20)
 $sidebarPanel.Controls.Add($actionLabel)
 
@@ -328,7 +378,7 @@ $analyzeButton.Text = "Ereignisse analysieren"
 $analyzeButton.BackColor = $darkAccent
 $analyzeButton.ForeColor = $darkText
 $analyzeButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$analyzeButton.Location = New-Object System.Drawing.Point(10, 435)
+$analyzeButton.Location = New-Object System.Drawing.Point(10, 470)
 $analyzeButton.Size = New-Object System.Drawing.Size(200, 40)
 $analyzeButton.Add_Click({ PerformAnalysis })
 $sidebarPanel.Controls.Add($analyzeButton)
@@ -339,7 +389,7 @@ $saveButton.Text = "Analyse speichern..."
 $saveButton.BackColor = $darkMenuBackground
 $saveButton.ForeColor = $darkText
 $saveButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$saveButton.Location = New-Object System.Drawing.Point(10, 480)
+$saveButton.Location = New-Object System.Drawing.Point(10, 515)
 $saveButton.Size = New-Object System.Drawing.Size(200, 30)
 $saveButton.Add_Click({
         $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
@@ -368,7 +418,7 @@ $exitButton.Text = "Beenden"
 $exitButton.BackColor = $darkMenuBackground
 $exitButton.ForeColor = $darkText
 $exitButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$exitButton.Location = New-Object System.Drawing.Point(10, 515)
+$exitButton.Location = New-Object System.Drawing.Point(10, 550)
 $exitButton.Size = New-Object System.Drawing.Size(200, 30)
 $exitButton.Add_Click({ $form.Close() })
 $sidebarPanel.Controls.Add($exitButton)
