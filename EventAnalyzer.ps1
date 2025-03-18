@@ -429,9 +429,10 @@ $dataGridView.ColumnHeadersDefaultCellStyle.Font = New-Object System.Drawing.Fon
 # Initialisieren mit leeren Spalten für die Analysetabelle
 $columns = @(
     @{Name = "Problem"; Header = "Problem"; Width = 150 }, # Prägnanter Name statt allgemeiner Kategorie
-    @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 300 },
-    @{Name = "Haeufigkeit"; Header = "Häufigkeit"; Width = 100 },
-    @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 100 }
+    @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 200 },
+    @{Name = "Haeufigkeit"; Header = "Häufigkeit"; Width = 80 },
+    @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 80 },
+    @{Name = "Fehlerbehebung"; Header = "Fehlerbehebung"; Width = 200 }
 )
 
 foreach ($column in $columns) {
@@ -543,7 +544,8 @@ Die Tabelle sollte folgende Struktur haben:
       "kategorie": "Praeznanter Problemname", 
       "beschreibung": "Kurze Erklaerung des Problems",
       "haeufigkeit": "Anzahl oder Prozent", 
-      "wichtigkeit": "1-10"
+      "wichtigkeit": "1-10",
+      "fehlerbehebung": "Konkrete Loesungsempfehlung"
     }
   ]
 }
@@ -551,6 +553,10 @@ Die Tabelle sollte folgende Struktur haben:
 
 Fuer das "kategorie"-Feld sollst du praegnante, kurze Namen verwenden, die das Problem auf den Punkt bringen,
 wie z.B. "Netzwerkausfall", "Speicherknappheit", "Treiberfehler", "Windows Update Problem", usw.
+
+Das Feld "fehlerbehebung" muss konkrete, praxisnahe und spezifische Loesungsvorschlaege enthalten,
+wie z.B. "Dienst xyz neu starten", "Treiber aktualisieren", "Registry-Schluessel anpassen", etc.
+Diese sollten moeglichst direkt anwendbar und verstaendlich sein.
 
 Die Tabelleneintraege sollten wichtige Kategorien aus deiner Analyse darstellen, wie z.B.:
 - Haeufigste Ereignistypen
@@ -907,9 +913,10 @@ function PerformAnalysis {
                     $beschreibung = $row.beschreibung
                     $haeufigkeit = $row.haeufigkeit
                     $wichtigkeit = $row.wichtigkeit
+                    $fehlerbehebung = $row.fehlerbehebung
                     
                     # In DataGridView einfügen
-                    $rowIndex = $dataGridView.Rows.Add($kategorie, $beschreibung, $haeufigkeit, $wichtigkeit)
+                    $rowIndex = $dataGridView.Rows.Add($kategorie, $beschreibung, $haeufigkeit, $wichtigkeit, $fehlerbehebung)
                     
                     # Wichtigkeit als Zellfarbe darstellen (je höher, desto intensiver)
                     # Konvertieren zu Integer, falls es als String kommt
