@@ -254,12 +254,12 @@ $dataGridView.EnableHeadersVisualStyles = $false
 $dataGridView.ColumnHeadersHeight = 30
 $dataGridView.AutoSizeColumnsMode = [System.Windows.Forms.DataGridViewAutoSizeColumnsMode]::Fill
 
-# Initialisieren mit leeren Spalten
+# Initialisieren mit leeren Spalten für die Analysetabelle
 $columns = @(
-    @{Name = "Id"; Header = "Ereignis-ID"; Width = 80 },
-    @{Name = "Level"; Header = "Schweregrad"; Width = 100 },
-    @{Name = "Time"; Header = "Zeitpunkt"; Width = 150 },
-    @{Name = "Message"; Header = "Nachricht"; Width = 400 }
+    @{Name = "Kategorie"; Header = "Kategorie"; Width = 150 },
+    @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 300 },
+    @{Name = "Haeufigkeit"; Header = "Häufigkeit"; Width = 100 },
+    @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 100 }
 )
 
 foreach ($column in $columns) {
@@ -414,25 +414,32 @@ Erstelle eine verstaendliche Zusammenfassung mit folgenden Abschnitten:
 
 Formatiere diesen Teil mit Markdown fuer bessere Lesbarkeit.
 
-TEIL 2: JSON-DATEN
-Nach der Markdown-Analyse, füge einen JSON-Block ein, der wichtige Events enthält, die hervorgehoben werden sollten. Formatiere diesen Block wie folgt:
+TEIL 2: TABELLENDATEN
+Nach der Markdown-Analyse füge einen JSON-Block ein, der eine tabellarische Zusammenfassung der Analyse enthält. 
+Die Tabelle sollte folgende Struktur haben:
 \`\`\`json
 {
-  "important_events": [
+  "table_rows": [
     {
-      "id": "EventID",
-      "level": "Schweregrad",
-      "time": "Zeitpunkt",
-      "message": "Kurze Beschreibung",
-      "priority": 1-10,
-      "recommendation": "Kurze Handlungsempfehlung"
+      "kategorie": "Kategorie/Typ des Eintrags", 
+      "beschreibung": "Beschreibung/Details",
+      "haeufigkeit": "Anzahl oder Prozent", 
+      "wichtigkeit": 1-10
     },
     ...
   ]
 }
 \`\`\`
 
-Die JSON-Struktur sollte maximal 10 der wichtigsten Ereignisse enthalten, sortiert nach Priorität (1-10, wobei 10 am wichtigsten ist).
+Die Tabelleneinträge sollten wichtige Kategorien aus deiner Analyse darstellen, wie z.B.:
+- Häufigste Ereignistypen
+- Kritische Fehler
+- Dienstwarnungen
+- Systemprobleme
+- Sicherheitshinweise
+- Ressourcenengpässe, etc.
+
+Sortiere die Einträge nach Wichtigkeit (1-10, wobei 10 am wichtigsten ist).
 
 WICHTIG: Verwende nur ASCII-Zeichen in deiner Antwort, um Encoding-Probleme zu vermeiden. 
 Ersetze Umlaute wie folgt:
@@ -766,54 +773,53 @@ function PerformAnalysis {
         $jsonPart = $Matches[1]
         try {
             # Versuche, den JSON-Teil zu parsen
-            $importantEvents = $jsonPart | ConvertFrom-Json
+            $tableData = $jsonPart | ConvertFrom-Json
             
             # DataGridView leeren
             $dataGridView.Rows.Clear()
             
-            # Wichtige Ereignisse in der Tabelle anzeigen
-            if ($importantEvents.important_events -and $importantEvents.important_events.Count -gt 0) {
-                foreach ($event in $importantEvents.important_events) {
-                    # Zellen für die Tabelle vorbereiten
-                    $id = $event.id
-                    $level = $event.level
-                    $time = $event.time
-                    $message = $event.message
+            # Tabellenzeilen aus der AI-Analyse in das DataGridView einfügen
+            if ($tableData.table_rows -and $tableData.table_rows.Count -gt 0) {
+                foreach ($row in $tableData.table_rows) {
+                    # Daten für die Tabelle vorbereiten
+                    $kategorie = $row.kategorie
+                    $beschreibung = $row.beschreibung
+                    $haeufigkeit = $row.haeufigkeit
+                    $wichtigkeit = $row.wichtigkeit
                     
                     # In DataGridView einfügen
-                    $rowIndex = $dataGridView.Rows.Add($id, $level, $time, $message)
+                    $rowIndex = $dataGridView.Rows.Add($kategorie, $beschreibung, $haeufigkeit, $wichtigkeit)
                     
-                    # Priorität als Zellfarbe darstellen (je höher, desto intensiver)
-                    $priority = [Math]::Min([Math]::Max($event.priority, 1), 10)  # Zwischen 1-10 begrenzen
+                    # Wichtigkeit als Zellfarbe darstellen (je höher, desto intensiver)
+                    $priority = [Math]::Min([Math]::Max($wichtigkeit, 1), 10)  # Zwischen 1-10 begrenzen
                     
-                    # Farbe je nach Schweregrad und Priorität
+                    # Farbintensität basierend auf Wichtigkeit
                     $colorIntensity = 80 + ($priority * 15)  # 80-230 Bereich
                     
-                    if ($event.level -eq "Error" -or $event.level -eq "Fehler") {
+                    # Farbcodierung nach Wichtigkeit
+                    if ($priority -ge 8) {
+                        # Hohe Wichtigkeit (8-10): Rot
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, $colorIntensity, 40, 40)
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 200, 200)
                     }
-                    elseif ($event.level -eq "Warning" -or $event.level -eq "Warnung") {
-                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, $colorIntensity, [Math]::Min($colorIntensity - 10, 230), 40)
+                    elseif ($priority -ge 5) {
+                        # Mittlere Wichtigkeit (5-7): Gelb/Orange
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, $colorIntensity, [Math]::Min($colorIntensity - 30, 200), 40)
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 240, 180)
                     }
-                    elseif ($event.level -eq "Critical" -or $event.level -eq "Kritisch") {
-                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, [Math]::Min($colorIntensity + 40, 255), 30, 30)
-                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 180, 180)
-                    }
-                    else {
-                        # Andere Schweregrade mit neutralerer Farbe darstellen
+                    elseif ($priority -ge 3) {
+                        # Niedrigere Wichtigkeit (3-4): Blau
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 40, 40, [Math]::Min($colorIntensity, 230))
                         $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = $darkText
                     }
-                    
-                    # Tooltip mit Empfehlung hinzufügen
-                    if ($event.recommendation) {
-                        $dataGridView.Rows[$rowIndex].Cells[3].ToolTipText = $event.recommendation
+                    else {
+                        # Niedrigste Wichtigkeit (1-2): Grün
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 40, [Math]::Min($colorIntensity, 230), 40)
+                        $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = $darkText
                     }
                 }
                 
-                $statusLabel.Text = "Analyse abgeschlossen | $($importantEvents.important_events.Count) wichtige Ereignisse gefunden"
+                $statusLabel.Text = "Analyse abgeschlossen | $($tableData.table_rows.Count) Eintraege in der Tabelle gefunden"
             }
         }
         catch {
