@@ -480,7 +480,7 @@ $dataGridView.ColumnHeadersDefaultCellStyle.Font = New-Object System.Drawing.Fon
 $columns = @(
     @{Name = "Problem"; Header = "Problem"; Width = 150 }, # Praegnanter Name statt allgemeiner Kategorie
     @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 200 },
-    @{Name = "Haeufigkeit"; Header = "haeufigkeit"; Width = 80 },
+    @{Name = "Haeufigkeit"; Header = "Haeufigkeit"; Width = 80 },
     @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 80 },
     @{Name = "Fehlerbehebung"; Header = "Fehlerbehebung"; Width = 200 }
 )
