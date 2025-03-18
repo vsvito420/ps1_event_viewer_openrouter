@@ -105,7 +105,6 @@ $darkMenuBackground = [System.Drawing.Color]::FromArgb(255, 45, 45, 45)
 $darkText = [System.Drawing.Color]::FromArgb(255, 220, 220, 220)
 $darkAccent = [System.Drawing.Color]::FromArgb(255, 0, 120, 215)
 $darkControlBackground = [System.Drawing.Color]::FromArgb(255, 40, 40, 40)
-$sliderAccent = [System.Drawing.Color]::FromArgb(255, 0, 150, 215)
 
 # Formular erstellen - Position angepasst, um Inhaltsabschneiden zu vermeiden
 $form = New-Object System.Windows.Forms.Form
@@ -141,7 +140,7 @@ $refreshMenuItem.ForeColor = $darkText
 # Panel für Konfigurationselemente hinzufügen (am Anfang)
 $configPanel = New-Object System.Windows.Forms.Panel
 $configPanel.Dock = [System.Windows.Forms.DockStyle]::Top
-$configPanel.Height = 80
+$configPanel.Height = 120  # Erhöht für Notizbox (war 80)
 $configPanel.BackColor = $darkControlBackground
 $configPanel.Padding = New-Object System.Windows.Forms.Padding(10, 5, 10, 5)
 
@@ -189,6 +188,22 @@ $eventsSlider.Add_ValueChanged({
         $eventsLabel.Text = "Ereignisanzahl: $($eventsSlider.Value)"
     })
 
+# Notizbox für zusätzliche Anweisungen an die KI
+$notizLabel = New-Object System.Windows.Forms.Label
+$notizLabel.Text = "Zusätzliche Anweisungen an die KI:"
+$notizLabel.ForeColor = $darkText
+$notizLabel.Location = New-Object System.Drawing.Point(10, 80)
+$notizLabel.Size = New-Object System.Drawing.Size(200, 20)
+
+$notizTextBox = New-Object System.Windows.Forms.TextBox
+$notizTextBox.Location = New-Object System.Drawing.Point(10, 100)
+$notizTextBox.Size = New-Object System.Drawing.Size(300, 35)
+$notizTextBox.Multiline = $true
+$notizTextBox.BackColor = $darkBackground
+$notizTextBox.ForeColor = $darkText
+$notizTextBox.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$notizTextBox.Text = "z.B. Ignoriere Programme wie Chrome oder Outlook"
+
 # Analyse-Button hinzufügen
 $analyzeButton = New-Object System.Windows.Forms.Button
 $analyzeButton.Text = "Ereignisse analysieren"
@@ -203,12 +218,14 @@ $configPanel.Controls.Add($modelLabel)
 $configPanel.Controls.Add($modelComboBox)
 $configPanel.Controls.Add($eventsLabel)
 $configPanel.Controls.Add($eventsSlider)
+$configPanel.Controls.Add($notizLabel)
+$configPanel.Controls.Add($notizTextBox)
 $configPanel.Controls.Add($analyzeButton)
 
 # SplitContainer erstellen für geteilte Ansicht (links Text, rechts Tabelle)
 $splitContainer = New-Object System.Windows.Forms.SplitContainer
 $splitContainer.Dock = [System.Windows.Forms.DockStyle]::Fill
-$splitContainer.Orientation = [System.Windows.Forms.Orientation]::Vertical
+$splitContainer.Orientation = [System.Windows.Forms.Orientation]::Horizontal  # Horizontal = links/rechts
 $splitContainer.SplitterDistance = 450  # Anfängliche Teilung
 $splitContainer.BackColor = $darkBackground
 $splitContainer.Panel1.BackColor = $darkBackground
@@ -222,7 +239,7 @@ $textBox.Multiline = $true
 $textBox.ReadOnly = $true
 $textBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
 $textBox.Dock = [System.Windows.Forms.DockStyle]::Fill
-$textBox.Font = New-Object System.Drawing.Font("Consolas", 10)
+$textBox.Font = New-Object System.Drawing.Font("Consolas", 12)  # Größere Schrift (war 10)
 $textBox.BackColor = $darkBackground
 $textBox.ForeColor = $darkText
 $textBox.WordWrap = $true
@@ -251,12 +268,16 @@ $dataGridView.DefaultCellStyle.ForeColor = $darkText
 $dataGridView.DefaultCellStyle.SelectionBackColor = $darkAccent
 $dataGridView.DefaultCellStyle.SelectionForeColor = $darkText
 $dataGridView.EnableHeadersVisualStyles = $false
-$dataGridView.ColumnHeadersHeight = 30
+$dataGridView.ColumnHeadersHeight = 36  # Erhöht (war 30)
 $dataGridView.AutoSizeColumnsMode = [System.Windows.Forms.DataGridViewAutoSizeColumnsMode]::Fill
+
+# Größere Schrift für DataGridView
+$dataGridView.DefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI", 11)
+$dataGridView.ColumnHeadersDefaultCellStyle.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
 
 # Initialisieren mit leeren Spalten für die Analysetabelle
 $columns = @(
-    @{Name = "Kategorie"; Header = "Kategorie"; Width = 150 },
+    @{Name = "Problem"; Header = "Problem"; Width = 150 }, # Prägnanter Name statt allgemeiner Kategorie
     @{Name = "Beschreibung"; Header = "Beschreibung"; Width = 300 },
     @{Name = "Haeufigkeit"; Header = "Häufigkeit"; Width = 100 },
     @{Name = "Wichtigkeit"; Header = "Wichtigkeit"; Width = 100 }
@@ -347,35 +368,8 @@ function Get-EventLogData {
         $statusLabel.Text = "$($global:eventData.Count) Ereignisse erfolgreich gesammelt."
         $form.Refresh()
         
-        # DataGridView leeren
+        # DataGridView leeren - hier keine Anzeige der Rohdaten mehr
         $dataGridView.Rows.Clear()
-        
-        # Ereignisse in DataGridView anzeigen
-        foreach ($event in $global:eventData) {
-            # Kurze Nachricht für die Tabelle (max. 100 Zeichen)
-            $shortMessage = if ($event.Message.Length -gt 100) {
-                $event.Message.Substring(0, 100) + "..."
-            }
-            else {
-                $event.Message
-            }
-            
-            $rowIndex = $dataGridView.Rows.Add($event.Id, $event.LevelDisplayName, $event.TimeCreated, $shortMessage)
-            
-            # Färben nach Schweregrad
-            if ($event.LevelDisplayName -eq "Error") {
-                $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 80, 40, 40)
-                $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 200, 200)
-            }
-            elseif ($event.LevelDisplayName -eq "Warning") {
-                $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 80, 70, 30)
-                $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 240, 180)
-            }
-            elseif ($event.LevelDisplayName -eq "Critical") {
-                $dataGridView.Rows[$rowIndex].DefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(255, 120, 30, 30)
-                $dataGridView.Rows[$rowIndex].DefaultCellStyle.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 180, 180)
-            }
-        }
         
         return $global:eventData | ConvertTo-Json -Depth 3
     }
@@ -401,55 +395,65 @@ function Get-AIAnalysis {
     $statusLabel.Text = "Sende Daten an $Model zur Analyse..."
     $form.Refresh()
     
+    # Benutzernotizen für die KI verwenden, falls vorhanden
+    $userNotes = $notizTextBox.Text.Trim()
+    $userNotesText = ""
+    if ($userNotes -ne "" -and $userNotes -ne "z.B. Ignoriere Programme wie Chrome oder Outlook") {
+        $userNotesText = "`nZUSAETZLICHE BENUTZERANWEISUNGEN: $userNotes"
+    }
+    
     $systemPrompt = @"
-Analysiere die folgenden Windows-Ereignisdaten und liefere das Ergebnis in zwei Teilen:
+Analysiere die folgenden Windows-Ereignisdaten und liefere das Ergebnis in zwei Teilen:$userNotesText
 
 TEIL 1: MARKDOWN-ANALYSE
 Erstelle eine verstaendliche Zusammenfassung mit folgenden Abschnitten:
-1. Uebersicht: Anzahl und Arten der Ereignisse
-2. Wichtige Ereignisse: Hervorheben kritischer oder ungewoehnlicher Eintraege
-3. Fehleranalyse: Moegliche Ursachen fuer Fehler oder Warnungen
-4. Empfehlungen: Konkrete Handlungsempfehlungen basierend auf den Ereignissen
-5. Zusammenfassung: Allgemeiner Systemzustand und wichtigste Punkte
+- Uebersicht: Anzahl und Arten der Ereignisse
+- Wichtige Ereignisse: Hervorheben kritischer oder ungewoehnlicher Eintraege
+- Fehleranalyse: Moegliche Ursachen fuer Fehler oder Warnungen
+- Empfehlungen: Konkrete Handlungsempfehlungen basierend auf den Ereignissen
+- Zusammenfassung: Allgemeiner Systemzustand und wichtigste Punkte
 
 Formatiere diesen Teil mit Markdown fuer bessere Lesbarkeit.
 
 TEIL 2: TABELLENDATEN
-Nach der Markdown-Analyse füge einen JSON-Block ein, der eine tabellarische Zusammenfassung der Analyse enthält. 
+Nach der Markdown-Analyse fuege einen JSON-Block ein, der eine tabellarische Zusammenfassung der Analyse enthaelt. 
 Die Tabelle sollte folgende Struktur haben:
-\`\`\`json
+
+```json
 {
   "table_rows": [
     {
-      "kategorie": "Kategorie/Typ des Eintrags", 
-      "beschreibung": "Beschreibung/Details",
+      "kategorie": "Praeznanter Problemname", 
+      "beschreibung": "Kurze Erklaerung des Problems",
       "haeufigkeit": "Anzahl oder Prozent", 
-      "wichtigkeit": 1-10
-    },
-    ...
+      "wichtigkeit": "1-10"
+    }
   ]
 }
-\`\`\`
+```
 
-Die Tabelleneinträge sollten wichtige Kategorien aus deiner Analyse darstellen, wie z.B.:
-- Häufigste Ereignistypen
+Fuer das "kategorie"-Feld sollst du praegnante, kurze Namen verwenden, die das Problem auf den Punkt bringen,
+wie z.B. "Netzwerkausfall", "Speicherknappheit", "Treiberfehler", "Windows Update Problem", usw.
+
+Die Tabelleneintraege sollten wichtige Kategorien aus deiner Analyse darstellen, wie z.B.:
+- Haeufigste Ereignistypen
 - Kritische Fehler
 - Dienstwarnungen
 - Systemprobleme
 - Sicherheitshinweise
-- Ressourcenengpässe, etc.
+- Ressourcenengpaesse, etc.
 
-Sortiere die Einträge nach Wichtigkeit (1-10, wobei 10 am wichtigsten ist).
+Sortiere die Eintraege nach Wichtigkeit (1-10, wobei 10 am wichtigsten ist).
 
 WICHTIG: Verwende nur ASCII-Zeichen in deiner Antwort, um Encoding-Probleme zu vermeiden. 
 Ersetze Umlaute wie folgt:
-- 'ä' durch 'ae'
-- 'ö' durch 'oe'
-- 'ü' durch 'ue'
-- 'Ä' durch 'Ae'
-- 'Ö' durch 'Oe'
-- 'Ü' durch 'Ue'
-- 'ß' durch 'ss'
+- 'ae' statt 'ä'
+- 'oe' statt 'ö'
+- 'ue' statt 'ü'
+- 'Ae' statt 'Ä'
+- 'Oe' statt 'Ö'
+- 'Ue' statt 'Ü'
+- 'ss' statt 'ß'
 Vermeide alle sonstigen Sonderzeichen, die nicht im ASCII-Zeichensatz enthalten sind.
 "@
     
@@ -791,6 +795,20 @@ function PerformAnalysis {
                     $rowIndex = $dataGridView.Rows.Add($kategorie, $beschreibung, $haeufigkeit, $wichtigkeit)
                     
                     # Wichtigkeit als Zellfarbe darstellen (je höher, desto intensiver)
+                    # Konvertieren zu Integer, falls es als String kommt
+                    try {
+                        if ($wichtigkeit -match "^\d+-\d+$") {
+                            # Falls Format "1-10" ist, nehme den höheren Wert
+                            $wichtigkeit = [int]($wichtigkeit.Split('-')[1])
+                        }
+                        else {
+                            $wichtigkeit = [int]$wichtigkeit
+                        }
+                    }
+                    catch {
+                        # Fallback, falls Konvertierung fehlschlägt
+                        $wichtigkeit = 5
+                    }
                     $priority = [Math]::Min([Math]::Max($wichtigkeit, 1), 10)  # Zwischen 1-10 begrenzen
                     
                     # Farbintensität basierend auf Wichtigkeit
