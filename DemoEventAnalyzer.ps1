@@ -107,23 +107,137 @@ Das System befindet sich in einem normalen Betriebszustand. Die gefundenen Warnu
 **Hinweis**: Dies ist eine **DEMO-ANALYSE** und basiert auf einer vordefinierten Vorlage mit Einbeziehung der tatsaechlichen Ereignisanzahl. Fuer eine echte KI-Analyse mit Claude 3.7 Sonnet, verwenden Sie bitte die Hauptversion mit API-Schluessel.
 "@
 
+# --- Funktion zum Parsen von Markdown für farbige Darstellung ---
+function Format-MarkdownText {
+    param (
+        [System.Windows.Forms.RichTextBox]$RichTextBox,
+        [string]$MarkdownText
+    )
+    
+    # Textbox leeren und zurücksetzen
+    $RichTextBox.Clear()
+    
+    # Farben definieren
+    $colorHeading1 = [System.Drawing.Color]::FromArgb(255, 77, 172, 253)    # Hellblau
+    $colorHeading2 = [System.Drawing.Color]::FromArgb(255, 102, 204, 255)   # Blau
+    $colorHeading3 = [System.Drawing.Color]::FromArgb(255, 129, 199, 247)   # Helleres Blau
+    $colorBold = [System.Drawing.Color]::FromArgb(255, 255, 203, 107)       # Gelb-Orange
+    $colorItalic = [System.Drawing.Color]::FromArgb(255, 180, 210, 115)     # Grün-Gelb
+    $colorList = [System.Drawing.Color]::FromArgb(255, 247, 140, 108)       # Orange
+    $colorCode = [System.Drawing.Color]::FromArgb(255, 190, 145, 255)       # Lila
+    $colorNormal = [System.Drawing.Color]::FromArgb(255, 220, 220, 220)     # Hellgrau
+    
+    # Markdown-Text in Zeilen aufteilen
+    $lines = $MarkdownText -split "`r`n|\r|\n"
+    
+    # Durch jede Zeile gehen
+    foreach ($line in $lines) {
+        $currentColor = $colorNormal
+        $isBold = $false
+        $isItalic = $false
+        
+        # Überschriften prüfen
+        if ($line -match '^# (.+)') {
+            $currentColor = $colorHeading1
+            $line = $Matches[1]
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, 14, [System.Drawing.FontStyle]::Bold)
+        }
+        elseif ($line -match '^## (.+)') {
+            $currentColor = $colorHeading2
+            $line = $Matches[1]
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, 12, [System.Drawing.FontStyle]::Bold)
+        }
+        elseif ($line -match '^### (.+)') {
+            $currentColor = $colorHeading3
+            $line = $Matches[1]
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, 11, [System.Drawing.FontStyle]::Bold)
+        }
+        # Aufzählungspunkte prüfen
+        elseif ($line -match '^(\s*[-*+]\s+)(.+)$') {
+            $prefix = $Matches[1]
+            $content = $Matches[2]
+            
+            # Zuerst das Bullet-Point-Symbol hinzufügen
+            $RichTextBox.SelectionColor = $colorList
+            $RichTextBox.AppendText($prefix)
+            
+            # Dann den restlichen Inhalt
+            $RichTextBox.SelectionColor = $colorNormal
+            $RichTextBox.AppendText($content)
+            $RichTextBox.AppendText("`n")
+            continue
+        }
+        # Code-Blöcke prüfen
+        elseif ($line -match '^```') {
+            $currentColor = $colorCode
+        }
+        
+        # Fett und kursiv für die gesamte Zeile prüfen - einfache Implementierung
+        if ($line -match '\*\*(.+)\*\*') {
+            $isBold = $true
+            $line = $line -replace '\*\*(.+)\*\*', '$1'
+        }
+        if ($line -match '_(.+)_' -or $line -match '\*(.+)\*') {
+            $isItalic = $true
+            $line = $line -replace '_(.+)_', '$1'
+            $line = $line -replace '\*(.+)\*', '$1'
+        }
+        
+        # Schriftart anpassen
+        if ($isBold -and $isItalic) {
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, $RichTextBox.Font.Size, [System.Drawing.FontStyle]::Bold -bor [System.Drawing.FontStyle]::Italic)
+        }
+        elseif ($isBold) {
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, $RichTextBox.Font.Size, [System.Drawing.FontStyle]::Bold)
+        }
+        elseif ($isItalic) {
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, $RichTextBox.Font.Size, [System.Drawing.FontStyle]::Italic)
+        }
+        else {
+            $RichTextBox.SelectionFont = New-Object System.Drawing.Font($RichTextBox.Font.FontFamily, $RichTextBox.Font.Size, [System.Drawing.FontStyle]::Regular)
+        }
+        
+        # Farbe setzen und Zeile hinzufügen
+        $RichTextBox.SelectionColor = $currentColor
+        $RichTextBox.AppendText($line + "`n")
+    }
+}
+
 # --- GUI erstellen zur Darstellung der Analyse ---
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+# Dunkles Theme-Farben
+$darkBackground = [System.Drawing.Color]::FromArgb(255, 30, 30, 30)
+$darkMenuBackground = [System.Drawing.Color]::FromArgb(255, 45, 45, 45)
+$darkText = [System.Drawing.Color]::FromArgb(255, 220, 220, 220)
+$darkAccent = [System.Drawing.Color]::FromArgb(255, 0, 120, 215)
+
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Windows Event Analyzer - DEMO"
+$form.Text = "Windows Event Analyzer - DEMO (Dunkles Theme)"
 $form.Size = New-Object System.Drawing.Size(900, 700)
 $form.StartPosition = "CenterScreen"
 $form.Icon = [System.Drawing.SystemIcons]::Information
+$form.BackColor = $darkBackground
+$form.ForeColor = $darkText
 
-# Menu erstellen
+# Menu erstellen mit dunklem Theme
 $menuStrip = New-Object System.Windows.Forms.MenuStrip
+$menuStrip.BackColor = $darkMenuBackground
+$menuStrip.ForeColor = $darkText
+$menuStrip.RenderMode = [System.Windows.Forms.ToolStripRenderMode]::Professional
+
 $fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem("Datei")
+$fileMenu.ForeColor = $darkText
 $saveMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Analyse speichern...")
+$saveMenuItem.ForeColor = $darkText
 $exitMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Beenden")
+$exitMenuItem.ForeColor = $darkText
+
 $helpMenu = New-Object System.Windows.Forms.ToolStripMenuItem("Hilfe")
+$helpMenu.ForeColor = $darkText
 $aboutMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Ueber")
+$aboutMenuItem.ForeColor = $darkText
 
 $saveMenuItem.Add_Click({
         $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
@@ -132,7 +246,10 @@ $saveMenuItem.Add_Click({
         $saveFileDialog.FileName = "Ereignisanalyse_DEMO_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').md"
     
         if ($saveFileDialog.ShowDialog() -eq 'OK') {
-            $textBox.Text | Out-File -FilePath $saveFileDialog.FileName -Encoding utf8
+            # UTF-8 ohne BOM verwenden, um Encoding-Probleme zu vermeiden
+            $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+            [System.IO.File]::WriteAllText($saveFileDialog.FileName, $textBox.Text, $Utf8NoBomEncoding)
+            
             [System.Windows.Forms.MessageBox]::Show(
                 "Analyse wurde gespeichert unter:`n$($saveFileDialog.FileName)", 
                 "Gespeichert",
@@ -148,7 +265,7 @@ $exitMenuItem.Add_Click({
 
 $aboutMenuItem.Add_Click({
         [System.Windows.Forms.MessageBox]::Show(
-            "Windows Event Analyzer (DEMO-VERSION)`n`nDiese Demo-Version zeigt eine vordefinierte Analyse basierend auf tatsaechlichen Ereignisdaten. Fuer eine echte KI-Analyse mit Claude 3.7 Sonnet, verwenden Sie bitte die Hauptversion mit API-Schluessel.", 
+            "Windows Event Analyzer (DEMO-VERSION)`n`nDiese Demo-Version zeigt eine vordefinierte Analyse basierend auf tatsaechlichen Ereignisdaten. Fuer eine echte KI-Analyse, verwenden Sie bitte die Hauptversion mit API-Schluessel.", 
             "Ueber Windows Event Analyzer",
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Information
@@ -167,26 +284,31 @@ $form.MainMenuStrip = $menuStrip
 $panel = New-Object System.Windows.Forms.Panel
 $panel.Dock = [System.Windows.Forms.DockStyle]::Fill
 $panel.Padding = New-Object System.Windows.Forms.Padding(10, 10, 10, 10)
+$panel.BackColor = $darkBackground
 
-# TextBox erstellen für die Anzeige der Analyse
+# RichTextBox erstellen für die Anzeige der Analyse
 $textBox = New-Object System.Windows.Forms.RichTextBox
 $textBox.Multiline = $true
 $textBox.ReadOnly = $true
 $textBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
 $textBox.Dock = [System.Windows.Forms.DockStyle]::Fill
-$textBox.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$textBox.BackColor = [System.Drawing.Color]::White
-$textBox.ForeColor = [System.Drawing.Color]::Black
+$textBox.Font = New-Object System.Drawing.Font("Consolas", 10)
+$textBox.BackColor = $darkBackground
+$textBox.ForeColor = $darkText
 $textBox.WordWrap = $true
-$textBox.Text = $analyseErgebnis
+
+# Text mit Markdown-Formatierung setzen
+Format-MarkdownText -RichTextBox $textBox -MarkdownText $analyseErgebnis
 
 $panel.Controls.Add($textBox)
 $form.Controls.Add($panel)
 
-# Status Bar hinzufügen
+# Status Bar hinzufügen mit dunklem Theme
 $statusStrip = New-Object System.Windows.Forms.StatusStrip
+$statusStrip.BackColor = $darkMenuBackground
 $statusLabel = New-Object System.Windows.Forms.ToolStripStatusLabel
 $statusLabel.Text = "DEMO-MODUS | Ereignisprotokoll: $logName | Ereignisse: $maxEvents | Keine API-Verbindung erforderlich"
+$statusLabel.ForeColor = $darkText
 $statusStrip.Items.Add($statusLabel)
 $form.Controls.Add($statusStrip)
 
