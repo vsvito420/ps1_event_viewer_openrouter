@@ -24,12 +24,14 @@ In Zeile:1 Zeichen:1
     + FullyQualifiedErrorId : UnauthorizedAccess
    ```
 ## Falls es Blockiert wird:
-1. PowerShell öffnen (als Administrator) und die Datei herunterladen:
+1. Umgehe in der PowerShell sitzung die warnung
    ```powershell
    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
    ```
 2. Starten
-
+   ```powershell
+    .\script_name.ps1
+   ```
 
 ## Alternative mehrstufige Installation
 
