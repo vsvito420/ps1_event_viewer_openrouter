@@ -1,7 +1,7 @@
 # Windows Event Analyzer mit OpenRouter AI
 
 Dieses PowerShell-Skript analysiert Windows-Ereignisprotokolle mit Hilfe von Claude 3.7 Sonnet via OpenRouter.
-
+![Image from Program](image.png)
 ## Direktausführung
 
 Um das Skript direkt ohne Download auszuführen, kopieren Sie den folgenden Befehl in eine PowerShell-Konsole (als Administrator):
