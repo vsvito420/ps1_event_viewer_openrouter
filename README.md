@@ -12,6 +12,25 @@ powershell -Command "iwr -useb https://raw.githubusercontent.com/vsvito420/ps1_e
 
 **Hinweis:** Diese Schreibweise könnte von Antivirenprogrammen als verdächtig erkannt werden, da sie häufig von Malware verwendet wird. Falls Sie Probleme haben, nutzen Sie die alternative Methode unten.
 
+   ```powershell
+PS C:\Users\v.skolan\Desktop> .\script.ps1
+.\script.ps1 : Die Datei "C:\Users\v.skolan\Desktop\script.ps1" kann nicht geladen werden, da die
+Ausführung von Skripts auf diesem System deaktiviert ist. Weitere Informationen finden Sie unter
+"about_Execution_Policies" (https:/go.microsoft.com/fwlink/?LinkID=135170).
+In Zeile:1 Zeichen:1
++ .\script.ps1
++ ~~~~~~~~~~~~
+    + CategoryInfo          : Sicherheitsfehler: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+   ```
+## Falls es Blockiert wird:
+1. PowerShell öffnen (als Administrator) und die Datei herunterladen:
+   ```powershell
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+   ```
+2. Starten
+
+
 ## Alternative mehrstufige Installation
 
 Diese Methode ist weniger wahrscheinlich, Virenscanner zu aktivieren:
