@@ -1,0 +1,41 @@
+error log
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Alle Rechte vorbehalten.
+                                                                                                                        Installieren Sie die neueste PowerShell für neue Funktionen und Verbesserungen! https://aka.ms/PSWindows                                                                                                                                        PS C:\Users\User> powershell -Command "iwr -useb https://raw.githubusercontent.com/vsvito420/ps1_event_viewer_openrouter/main/EventAnalyzer.ps1 | iex"
+iex : In Zeile:710 Zeichen:26
++         $detailedError = @"
++                          ~~
+Die Zeichenfolge hat kein Abschlusszeichen: "@.
+In Zeile:703 Zeichen:11
++     catch {
++           ~
+Die schließende "}" fehlt im Anweisungsblock oder der Typdefinition.
+In Zeile:566 Zeichen:25
++ function Get-AIAnalysis {
++                         ~
+Die schließende "}" fehlt im Anweisungsblock oder der Typdefinition.
+In Zeile:1 Zeichen:108
++ ... om/vsvito420/ps1_event_viewer_openrouter/main/EventAnalyzer.ps1 | iex
++                                                                       ~~~
+    + CategoryInfo          : ParserError: (:) [Invoke-Expression], ParseException
+    + FullyQualifiedErrorId : TerminatorExpectedAtEndOfString,Microsoft.PowerShell.Commands.InvokeExpressionCommand
+
+PS C:\Users\User> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+PS C:\Users\User> cd .\Desktop\
+PS C:\Users\User\Desktop> .\EventAnalyzer.ps1
+In C:\Users\User\Desktop\EventAnalyzer.ps1:710 Zeichen:26
++         $detailedError = @"
++                          ~~
+Die Zeichenfolge hat kein Abschlusszeichen: "@.
+In C:\Users\User\Desktop\EventAnalyzer.ps1:703 Zeichen:11
++     catch {
++           ~
+Die schließende "}" fehlt im Anweisungsblock oder der Typdefinition.
+In C:\Users\User\Desktop\EventAnalyzer.ps1:566 Zeichen:25
++ function Get-AIAnalysis {
++                         ~
+Die schließende "}" fehlt im Anweisungsblock oder der Typdefinition.
+    + CategoryInfo          : ParserError: (:) [], ParseException
+    + FullyQualifiedErrorId : TerminatorExpectedAtEndOfString
+
+PS C:\Users\User\Desktop>
