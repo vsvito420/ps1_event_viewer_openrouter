@@ -84,11 +84,11 @@ function Set-EnvVariable {
 $apiUrl = "https://openrouter.ai/api/v1/chat/completions"  # OpenRouter API-URL
 # Verfuegbare Modelle
 $availableModels = @{
-    "Claude 3.7 Sonnet"            = "anthropic/claude-3.7-sonnet"
-    "Claude 3.7 Sonnet (thinking)" = "anthropic/claude-3.7-sonnet:thinking"
+    "Claude 4 Sonnet"            = "anthropic/claude-sonnet-4"
+    "Perplexity: Sonar Pro" = "perplexity/sonar-pro"
     "GPT-4o"                       = "openai/gpt-4o"
-    "GPT-4"                        = "openai/gpt-4"
-    "Gemini flash 2.0"             = "google/gemini-2.0-flash-001"
+    "GPT-4.1"                        = "openai/gpt-4.1"
+    "Gemini flash 2.5"             = "google/gemini-2.5-flash"
 }
 
 # Standard-Modell ist Claude 3.7 Sonnet
